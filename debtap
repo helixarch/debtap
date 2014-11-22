@@ -4,12 +4,13 @@
 lightgreen='\e[1;32m'
 lightred='\e[1;31m'
 red='\e[0;31m'
+lightblue='\e[1;34m'
 NC='\e[0m'
 bold=`tput bold`
 normal=`tput sgr0`
 
 # Help and error messages
-if [[ "$1" == "-help" ]] || [[ "$1" == "--help" ]]; then
+if [[ "$1" == "-h" ]] || [[ "$1" == "--h" ]] || [[ "$1" == "-help" ]] || [[ "$1" == "--help" ]]; then
     echo "Syntax: debtap package_filename"; exit 0
 elif [[ "$1" == "" ]]; then
     echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap package_filename"; exit 1
@@ -20,7 +21,7 @@ elif [[ $(file -b "$1" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
 elif [[ $(ping -c 1 www.google.com &> /dev/null; echo $?) != 0 ]]; then
     echo -e "${red}Error: You have no internet access, which is necessary for this script to work${NC}"; exit 1
 elif [[ $(ls /var/cache/pkgfile/*.files | wc -l) == 0 ]]; then
-    echo -e "${red}Error: You must run at least once "pkgfile -u" with root privileges (preferably recently), before running this script${NC}"; exit 1
+    echo -e "${red}Error: You must run at least once \"pkgfile -u\" with root privileges (preferably recently), before running this script${NC}"; exit 1
 fi
 
 # Defining and creating working directory
@@ -78,9 +79,24 @@ fi
 if [ -e usr/sbin ]; then
     mkdir usr/bin 2> /dev/null; cp -a usr/sbin/* usr/bin; rm -rf usr/sbin
 fi
+if [ -e usr/local/games ]; then
+    mkdir usr/bin 2> /dev/null; cp -a usr/local/games/* usr/bin; rm -rf usr/local/games
+fi
+if [ -e usr/local/lib32 ] && [ $(grep Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
+    mkdir usr/lib 2> /dev/null; cp -a usr/local/lib32/* usr/lib; rm -rf usr/local/lib32
+fi
+if [ -e usr/local/lib64 ]; then
+    mkdir usr/lib 2> /dev/null; cp -a usr/local/lib64/* usr/lib; rm -rf usr/local/lib64
+fi
+if [ -e usr/local/sbin ]; then
+    mkdir usr/bin 2> /dev/null; cp -a usr/local/sbin/* usr/bin; rm -rf usr/local/sbin
+fi
+if [ -e usr/local ]; then
+    cp -a usr/local/* usr; rm -rf usr/local
+fi
 if [ -e usr/share/applications ]; then
     for i in usr/share/applications/*.desktop; do
-	sed -i -e s'/Exec=\/bin\//Exec=\/usr\/bin\//g' -e s'/Exec=\/sbin\//Exec=\/usr\/bin\//g' -e s'/Exec=\/usr\/sbin\//Exec=\/usr\/bin\//g' -e s'/Exec=\/usr\/games\//Exec=\/usr\/bin\//g' "$i" 2> /dev/null
+	sed -i -e s'/Exec=\/bin\//Exec=\/usr\/bin\//g' -e s'/Exec=\/sbin\//Exec=\/usr\/bin\//g' -e s'/Exec=\/usr\/sbin\//Exec=\/usr\/bin\//g' -e s'/Exec=\/usr\/games\//Exec=\/usr\/bin\//g' -e s'/Exec=\/usr\/local\/bin\//Exec=\/usr\/bin\//g' -e s'/Exec=\/usr\/local\/sbin\//Exec=\/usr\/bin\//g' -e s'/Exec=\/usr\/local\/games\//Exec=\/usr\/bin\//g' "$i" 2> /dev/null
     done
 fi
 
@@ -144,7 +160,7 @@ echo "url = `grep Homepage: control | gawk '{print $2}'`" | sed s'/\/$//' >> .PK
 echo "builddate = `date -u "+%s"`" >> .PKGINFO
 
 # Generating packager field
-echo -e "\n:: Enter Packager name:"
+echo -e "\n${lightblue}::${NC} Enter Packager name:"
 read packager_name
 echo "packager = $packager_name" >> .PKGINFO
 
@@ -160,7 +176,7 @@ fi
 echo "size =" $(expr `du -sb | tr -d " ."` - `ls -l | grep control | gawk '{print $5}'` - $conffiles_size - `ls -la | grep .PKGINFO | gawk '{print $5}'` - 4096) >> .PKGINFO
 
 # Generating license field
-echo -e "\n:: Enter package license (you can enter multiple licenses comma seperated):"
+echo -e "\n${lightblue}::${NC} Enter package license (you can enter multiple licenses comma seperated):"
 read package_license
 for i in `echo "$package_license" | sed -e s'/ /__/g' -e s'/,/ /g'`; do
     license+=($i)
@@ -2935,15 +2951,18 @@ if [ -e new-untranslated-names-only ]; then
 	fi
 
 	if [ ! -e tempfile ]; then
+	    word_count=$(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | wc -w)
 	    package-query -SsA $(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | gawk '{print $1}') | grep -v '    ' | gawk -F '/' '{print $2}' | gawk '{print $1}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' > result3
-	    grep -q "^$(echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | gawk '{print $1}')" result3 virtual-packages && echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | gawk '{print $1}' >> tempfile
-	    grep -q "^$(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | gawk '{print $1}')$" result3 virtual-packages && echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | gawk '{print $1}' >> tempfile
+	    for s in $(eval echo {$word_count..1}); do
+		grep -q "^$(echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g')" result3 virtual-packages && echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g' >> tempfile
+		grep -q "^$(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g')$" result3 virtual-packages && echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g' >> tempfile
+	    done
 	fi
 
 	if [ -e tempfile ] && [ $(grep pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' | grep -q "^$(head -1 tempfile)$"; echo $?) != 0 ]; then
-	    for s in {svn,git,cvs,bzr,darcs,hg}; do
-		if [ $(echo "$i" | grep -q "\-$s$"; echo $?) -eq 0 ]; then
-		    grep "^$i$\|^$i " new-untranslated | sed s"/^$i/$(head -1 tempfile))-$s/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
+	    for t in {svn,git,cvs,bzr,darcs,hg}; do
+		if [ $(echo "$i" | grep -q "\-$t$"; echo $?) -eq 0 ]; then
+		    grep "^$i$\|^$i " new-untranslated | sed s"/^$i/$(head -1 tempfile))-$t/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 		fi
 	    done
 	    if [ $(echo "$i" | grep -q '\-svn$\|\-git$\|\-cvs$\|\-bzr$\|\-darcs$\|\-hg$'; echo $?) -ne 0 ]; then
@@ -3119,9 +3138,9 @@ fi
 if [ -e conffiles ]; then
     sed s'/^\///g' conffiles > tempfile
     if [ $(grep Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
-	sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib\//g' -e s'/^lib32\//usr\/lib\//g' -e s'/^usr\/lib32\//usr\/lib\//g' tempfile
+	sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib\//g' -e s'/^lib32\//usr\/lib\//g' -e s'/^usr\/lib32\//usr\/lib\//g' -e s'/^usr\/local\/sbin\//usr\/bin\//g' -e s'/^usr\/local\/games\//usr\/bin\//g' -e s'/^usr\/local\/lib32\//usr\/lib\//g' -e s'/^usr\/local\//usr\//g' tempfile
     else
-	sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib\//g' -e s'/^lib32\//usr\/lib32\//g' -e s'/^lib64\//usr\/lib\//g' -e s'/^usr\/lib64\//usr\/lib\//g' tempfile
+	sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib\//g' -e s'/^lib32\//usr\/lib32\//g' -e s'/^lib64\//usr\/lib\//g' -e s'/^usr\/lib64\//usr\/lib\//g' -e s'/^usr\/local\/sbin\//usr\/bin\//g' -e s'/^usr\/local\/games\//usr\/bin\//g' -e s'/^usr\/local\/lib64\//usr\/lib\//g' -e s'/^usr\/local\//usr\//g' tempfile
     fi
     for i in `sort -u tempfile`; do echo "backup = $i" >> .PKGINFO ; done
     rm -rf tempfile
@@ -3261,28 +3280,32 @@ rm -rf control conffiles virtual-packages
 
 # Prompting user for editing .PKGINFO and .INSTALL files
 if [ -e .INSTALL ]; then
-    echo -en "\n${bold}:: If you want to edit .PKGINFO and .INSTALL files (in this order), press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
+    echo -en "\n${lightblue}::${NC} ${bold} If you want to edit .PKGINFO and .INSTALL files (in this order), press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
     read -n 1 number
     if [[ $number == 1 ]]; then
-	vi .PKGINFO; vi .INSTALL
+	vi .PKGINFO; vi .INSTALL; echo
     elif [[ $number == 2 ]]; then
-	nano .PKGINFO; nano .INSTALL
+	nano .PKGINFO; nano .INSTALL; echo
     elif [[ $number == 3 ]]; then
-	echo -en "\n${bold}:: Enter command for running custom editor: ${normal}"
+	echo -en "\n${lightblue}::${NC} ${bold} Enter command for running custom editor: ${normal}"
 	read custom_editor
 	$custom_editor .PKGINFO; $custom_editor .INSTALL
+    else
+	echo
     fi
 else
-    echo -en "\n${bold}:: If you want to edit .PKGINFO file, press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
+    echo -en "\n${lightblue}::${NC} ${bold} If you want to edit .PKGINFO file, press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
     read -n 1 number
     if [[ $number == 1 ]]; then
-	vi .PKGINFO
+	vi .PKGINFO; echo
     elif [[ $number == 2 ]]; then
-	nano .PKGINFO
+	nano .PKGINFO; echo
     elif [[ $number == 3 ]]; then
-	echo -en "\n${bold}:: Enter command for running custom editor: ${normal}"
+	echo -en "\n${lightblue}::${NC} ${bold} Enter command for running custom editor: ${normal}"
 	read custom_editor
 	$custom_editor .PKGINFO
+    else
+	echo
     fi
 fi
 
