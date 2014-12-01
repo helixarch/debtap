@@ -2946,7 +2946,7 @@ if [ -e new-untranslated-names-only ]; then
 
 	if [ ! -e tempfile ]; then
 	    package-query -SsA $(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g') | grep -v '    ' | gawk -F '/' '{print $2}' | gawk '{print $1}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' > result3
-	    grep -q "^$(echo "$j" | sed -e s'/[0-9]\|\.//g' -e s'/-\+/-/g' -e s'/-$//g')" result3 virtual-packages && echo "$j" | sed -e s'/[0-9]\|\.//g' -e s'/-\+/-/g' -e s'/-$//g' >> tempfile
+	    grep -q "^$(echo "$j" | sed -e s'/[0-9]\|\.//g' -e s'/-\+/-/g' -e s'/-$//g')$" result3 virtual-packages && echo "$j" | sed -e s'/[0-9]\|\.//g' -e s'/-\+/-/g' -e s'/-$//g' >> tempfile
 	    grep -q "^$(echo "$j" | sed s'/^lib//' | sed -e s'/[0-9]\|\.//g' -e s'/-\+/-/g' -e s'/-$//g')$" result3 virtual-packages && echo "$j" | sed s'/^lib//' | sed -e s'/[0-9]\|\.//g' -e s'/-\+/-/g' -e s'/-$//g' >> tempfile
 	fi
 
@@ -2954,7 +2954,7 @@ if [ -e new-untranslated-names-only ]; then
 	    word_count=$(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | wc -w)
 	    package-query -SsA $(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | gawk '{print $1}') | grep -v '    ' | gawk -F '/' '{print $2}' | gawk '{print $1}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' > result3
 	    for s in $(eval echo {$word_count..1}); do
-		grep -q "^$(echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g')" result3 virtual-packages && echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g' >> tempfile
+		grep -q "^$(echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g')$" result3 virtual-packages && echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g' >> tempfile
 		grep -q "^$(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g')$" result3 virtual-packages && echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g' >> tempfile
 	    done
 	fi
