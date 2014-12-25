@@ -2954,8 +2954,8 @@ if [ -e new-untranslated-names-only ]; then
 	    word_count=$(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | wc -w)
 	    package-query -SsA $(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | gawk '{print $1}') | grep -v '    ' | gawk -F '/' '{print $2}' | gawk '{print $1}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' > result3
 	    for s in $(eval echo {$word_count..1}); do
-		grep -q "^$(echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | sed s'/ \+/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g')$" result3 virtual-packages && echo "$j" | sed s'/[0-9]\|\.\|-/ /g' | sed s'/ \+/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g' >> tempfile
-		grep -q "^$(echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | sed s'/ \+/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g')$" result3 virtual-packages && echo "$j" | sed s'/^lib//' | sed s'/[0-9]\|\.\|-/ /g' | sed s'/ \+/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g' >> tempfile
+		grep -q "^$(echo "$j" | sed -e s'/[0-9]\|\.\|-/ /g' -e s'/ \+/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g')$" result3 virtual-packages && echo "$j" | sed -e s'/[0-9]\|\.\|-/ /g' -e s'/ \+/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g' >> tempfile
+		grep -q "^$(echo "$j" | sed s'/^lib//' | sed -e s'/[0-9]\|\.\|-/ /g' -e s'/ \+/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g')$" result3 virtual-packages && echo "$j" | sed s'/^lib//' | sed -e s'/[0-9]\|\.\|-/ /g' -e s'/ \+/ /g' | cut -d ' ' -f1-$s | sed s'/ /-/g' >> tempfile
 	    done
 	fi
 
@@ -3280,28 +3280,28 @@ rm -rf control conffiles virtual-packages
 
 # Prompting user for editing .PKGINFO and .INSTALL files
 if [ -e .INSTALL ]; then
-    echo -en "\n${lightblue}::${NC} ${bold} If you want to edit .PKGINFO and .INSTALL files (in this order), press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
+    echo -en "\n${lightblue}::${NC} ${bold}If you want to edit .PKGINFO and .INSTALL files (in this order), press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
     read -n 1 number
     if [[ $number == 1 ]]; then
 	vi .PKGINFO; vi .INSTALL; echo
     elif [[ $number == 2 ]]; then
 	nano .PKGINFO; nano .INSTALL; echo
     elif [[ $number == 3 ]]; then
-	echo -en "\n${lightblue}::${NC} ${bold} Enter command for running custom editor: ${normal}"
+	echo -en "\n${lightblue}::${NC} ${bold}Enter command for running custom editor: ${normal}"
 	read custom_editor
 	$custom_editor .PKGINFO; $custom_editor .INSTALL
     else
 	echo
     fi
 else
-    echo -en "\n${lightblue}::${NC} ${bold} If you want to edit .PKGINFO file, press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
+    echo -en "\n${lightblue}::${NC} ${bold}If you want to edit .PKGINFO file, press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
     read -n 1 number
     if [[ $number == 1 ]]; then
 	vi .PKGINFO; echo
     elif [[ $number == 2 ]]; then
 	nano .PKGINFO; echo
     elif [[ $number == 3 ]]; then
-	echo -en "\n${lightblue}::${NC} ${bold} Enter command for running custom editor: ${normal}"
+	echo -en "\n${lightblue}::${NC} ${bold}Enter command for running custom editor: ${normal}"
 	read custom_editor
 	$custom_editor .PKGINFO
     else
