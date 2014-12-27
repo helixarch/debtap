@@ -27,7 +27,7 @@ A script for converting .deb packages into Arch Linux packages, focused on accur
 
 **Q: How do I use debtap?**
 
-**A:** The syntax is quite simple actually: `debtap package_filename`
+**A:** The syntax is quite simple actually: `debtap [option] package_filename`
 For example: `debtap world-of-goo-demo_1.0_i386.deb`
 
 Any recommendations or questions for debtap are welcomed!

@@ -10,40 +10,76 @@ bold=`tput bold`
 normal=`tput sgr0`
 
 # Help and error messages
-if [[ "$1" == "-h" ]] || [[ "$1" == "--h" ]] || [[ "$1" == "-help" ]] || [[ "$1" == "--help" ]]; then
-    echo "Syntax: debtap package_filename"; exit 0
-elif [[ "$1" == "" ]]; then
-    echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap package_filename"; exit 1
-elif [[ $(ls "$1" &> /dev/null; echo $?) != 0 ]]; then
-    echo -e "${red}Error: No such file or directory${NC}"; exit 1
-elif [[ $(file -b "$1" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
-    echo -e "${red}Error: You haven't specified a valid deb package${NC}"; exit 1
-elif [[ $(ping -c 1 www.google.com &> /dev/null; echo $?) != 0 ]]; then
+if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
+    if [[ "$2" == "-h" ]] || [[ "$2" == "--h" ]] || [[ "$2" == "-help" ]] || [[ "$2" == "--help" ]]; then
+	echo -e "Syntax: debtap [option] package_filename\n\nOptions:\n\n      -h  --h  -help   --help       Prints this help message\n      -q  --q  -quiet  --quiet      Bypass all questions, except for editing metadata file(s)\n      -Q  --Q  -Quiet  --Quiet      Bypass all questions (not recommended)"; exit 0
+    elif [[ "$2" == "" ]]; then
+	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap [option] package_filename\n\nOptions:\n\n      -h  --h  -help   --help       Prints this help message\n      -q  --q  -quiet  --quiet      Bypass all questions, except for editing metadata file(s)\n      -Q  --Q  -Quiet  --Quiet      Bypass all questions (not recommended)"; exit 1
+    elif [[ $(ls "$2" &> /dev/null; echo $?) != 0 ]]; then
+	echo -e "${red}Error: No such file or directory or invalid option${NC}"; exit 1
+    elif [[ $(file -b "$2" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
+	echo -e "${red}Error: You haven't specified a valid deb package${NC}"; exit 1
+    fi
+else
+    if [[ "$1" == "-h" ]] || [[ "$1" == "--h" ]] || [[ "$1" == "-help" ]] || [[ "$1" == "--help" ]]; then
+	echo -e "Syntax: debtap [option] package_filename\n\nOptions:\n\n      -h  --h  -help   --help       Prints this help message\n      -q  --q  -quiet  --quiet      Bypass all questions, except for editing metadata file(s)\n      -Q  --Q  -Quiet  --Quiet      Bypass all questions (not recommended)"; exit 0
+    elif [[ "$1" == "" ]]; then
+	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap [option] package_filename\n\nOptions:\n\n      -h  --h  -help   --help       Prints this help message\n      -q  --q  -quiet  --quiet      Bypass all questions, except for editing metadata file(s)\n      -Q  --Q  -Quiet  --Quiet      Bypass all questions (not recommended)"; exit 1
+    elif [[ $(ls "$1" &> /dev/null; echo $?) != 0 ]]; then
+	echo -e "${red}Error: No such file or directory or invalid option${NC}"; exit 1
+    elif [[ $(file -b "$1" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
+	echo -e "${red}Error: You haven't specified a valid deb package${NC}"; exit 1
+    fi
+fi
+if [[ $(ping -c 1 www.google.com &> /dev/null; echo $?) != 0 ]]; then
     echo -e "${red}Error: You have no internet access, which is necessary for this script to work${NC}"; exit 1
-elif [[ $(ls /var/cache/pkgfile/*.files | wc -l) == 0 ]]; then
+elif [[ $(ls /var/cache/pkgfile/*.files 2> /dev/null | wc -l) == 0 ]]; then
     echo -e "${red}Error: You must run at least once \"pkgfile -u\" with root privileges (preferably recently), before running this script${NC}"; exit 1
 fi
 
 # Defining and creating working directory
-working_directory="`ls "$1" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb//'`-working-directory"
+if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
+    working_directory="`ls "$2" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb//'`-working-directory"
+else
+    working_directory="`ls "$1" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb//'`-working-directory"
+fi
 mkdir "$working_directory"
 cd "$working_directory"
 
 # Extracting package data and metadata in working directory
 echo -e "${lightgreen}==>${NC} ${bold}Extracting package data...${normal}"
-ar p ../"$1" control.tar.gz | tar xz
+if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
+    ar p ../"$2" control.tar.gz | tar xz
+else
+    ar p ../"$1" control.tar.gz | tar xz
+fi
 rm -rf $(ls * | grep -v 'control\|conffiles')
-data_tar_check=`ar t ../"$1" | grep data`
-if [ $data_tar_check == data.tar.gz ]; then
-    ar p ../"$1" data.tar.gz | tar xz
-elif [ $data_tar_check == data.tar.xz ]; then
-    ar p ../"$1" data.tar.xz | tar xJ
-elif [ $data_tar_check == data.tar.bz2 ]; then
-    ar p ../"$1" data.tar.bz2 | tar xj
-elif [ $data_tar_check == data.tar.lzma ]; then
-    ar p ../"$1" data.tar.lzma | tar xJ
-elif [ $data_tar_check == data.tar ]; then
-    ar p ../"$1" data.tar | tar x
+if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
+    data_tar_check=`ar t ../"$2" | grep data`
+    if [ $data_tar_check == data.tar.gz ]; then
+	ar p ../"$2" data.tar.gz | tar xz
+    elif [ $data_tar_check == data.tar.xz ]; then
+	ar p ../"$2" data.tar.xz | tar xJ
+    elif [ $data_tar_check == data.tar.bz2 ]; then
+	ar p ../"$2" data.tar.bz2 | tar xj
+    elif [ $data_tar_check == data.tar.lzma ]; then
+	ar p ../"$2" data.tar.lzma | tar xJ
+    elif [ $data_tar_check == data.tar ]; then
+	ar p ../"$2" data.tar | tar x
+    fi
+else
+    data_tar_check=`ar t ../"$1" | grep data`
+    if [ $data_tar_check == data.tar.gz ]; then
+	ar p ../"$1" data.tar.gz | tar xz
+    elif [ $data_tar_check == data.tar.xz ]; then
+	ar p ../"$1" data.tar.xz | tar xJ
+    elif [ $data_tar_check == data.tar.bz2 ]; then
+	ar p ../"$1" data.tar.bz2 | tar xj
+    elif [ $data_tar_check == data.tar.lzma ]; then
+	ar p ../"$1" data.tar.lzma | tar xJ
+    elif [ $data_tar_check == data.tar ]; then
+	ar p ../"$1" data.tar | tar x
+    fi
 fi
 
 # Fixing possible differences in filesystem hierarchy of the extracted package data, so that it matches Arch Linux filesystem hierarchy
@@ -160,9 +196,13 @@ echo "url = `grep Homepage: control | gawk '{print $2}'`" | sed s'/\/$//' >> .PK
 echo "builddate = `date -u "+%s"`" >> .PKGINFO
 
 # Generating packager field
-echo -e "\n${lightblue}::${NC} Enter Packager name:"
-read packager_name
-echo "packager = $packager_name" >> .PKGINFO
+if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
+    echo "packager = Unknown Packager" >> .PKGINFO
+else
+    echo -e "\n${lightblue}::${NC} Enter Packager name:"
+    read packager_name
+    echo "packager = $packager_name" >> .PKGINFO
+fi
 
 # Generating arch field
 echo "arch = `grep Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/all/any/'`" >> .PKGINFO
@@ -176,13 +216,17 @@ fi
 echo "size =" $(expr `du -sb | tr -d " ."` - `ls -l | grep control | gawk '{print $5}'` - $conffiles_size - `ls -la | grep .PKGINFO | gawk '{print $5}'` - 4096) >> .PKGINFO
 
 # Generating license field
-echo -e "\n${lightblue}::${NC} Enter package license (you can enter multiple licenses comma seperated):"
-read package_license
-for i in `echo "$package_license" | sed -e s'/ /__/g' -e s'/,/ /g'`; do
-    license+=($i)
-done
-for (( i=0; i<$(echo ${#license[@]}); i=i+1 )); do license[$i]=$(echo ${license[$i]} | sed s'/__/ /g'); done
-printf '%s\n' "${license[@]}" | while read line; do echo "license = $line" >> .PKGINFO ; done
+if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
+    echo "license = custom" >> .PKGINFO
+else
+    echo -e "\n${lightblue}::${NC} Enter package license (you can enter multiple licenses comma seperated):"
+    read package_license
+    for i in `echo "$package_license" | sed -e s'/ /__/g' -e s'/,/ /g'`; do
+	license+=($i)
+    done
+    for (( i=0; i<$(echo ${#license[@]}); i=i+1 )); do license[$i]=$(echo ${license[$i]} | sed s'/__/ /g'); done
+    printf '%s\n' "${license[@]}" | while read line; do echo "license = $line" >> .PKGINFO ; done
+fi
 
 # The packages names translator function
 packages-names-translator() {
@@ -3279,33 +3323,35 @@ fi
 rm -rf control conffiles virtual-packages
 
 # Prompting user for editing .PKGINFO and .INSTALL files
-if [ -e .INSTALL ]; then
-    echo -en "\n${lightblue}::${NC} ${bold}If you want to edit .PKGINFO and .INSTALL files (in this order), press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
-    read -n 1 number
-    if [[ $number == 1 ]]; then
-	vi .PKGINFO; vi .INSTALL; echo
-    elif [[ $number == 2 ]]; then
-	nano .PKGINFO; nano .INSTALL; echo
-    elif [[ $number == 3 ]]; then
-	echo -en "\n${lightblue}::${NC} ${bold}Enter command for running custom editor: ${normal}"
-	read custom_editor
-	$custom_editor .PKGINFO; $custom_editor .INSTALL
+if [[ "$1" != "-Q" ]] && [[ "$1" != "--Q" ]] && [[ "$1" != "-Quiet" ]] && [[ "$1" != "--Quiet" ]]; then
+    if [ -e .INSTALL ]; then
+	echo -en "\n${lightblue}::${NC} ${bold}If you want to edit .PKGINFO and .INSTALL files (in this order), press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
+	read -n 1 number
+	if [[ $number == 1 ]]; then
+	    vi .PKGINFO; vi .INSTALL; echo
+	elif [[ $number == 2 ]]; then
+	    nano .PKGINFO; nano .INSTALL; echo
+	elif [[ $number == 3 ]]; then
+	    echo -en "\n${lightblue}::${NC} ${bold}Enter command for running custom editor: ${normal}"
+	    read custom_editor
+	    $custom_editor .PKGINFO; $custom_editor .INSTALL
+	else
+	    echo
+	fi
     else
-	echo
-    fi
-else
-    echo -en "\n${lightblue}::${NC} ${bold}If you want to edit .PKGINFO file, press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
-    read -n 1 number
-    if [[ $number == 1 ]]; then
-	vi .PKGINFO; echo
-    elif [[ $number == 2 ]]; then
-	nano .PKGINFO; echo
-    elif [[ $number == 3 ]]; then
-	echo -en "\n${lightblue}::${NC} ${bold}Enter command for running custom editor: ${normal}"
-	read custom_editor
-	$custom_editor .PKGINFO
-    else
-	echo
+	echo -en "\n${lightblue}::${NC} ${bold}If you want to edit .PKGINFO file, press (1) For${normal} ${lightred}vi${NC} ${bold}(2) For${normal} ${lightred}nano${NC} ${bold}(3) For${normal} ${lightred}a custom editor${NC} ${bold}or any other key to continue: ${normal}"
+	read -n 1 number
+	if [[ $number == 1 ]]; then
+	    vi .PKGINFO; echo
+	elif [[ $number == 2 ]]; then
+	    nano .PKGINFO; echo
+	elif [[ $number == 3 ]]; then
+	    echo -en "\n${lightblue}::${NC} ${bold}Enter command for running custom editor: ${normal}"
+	    read custom_editor
+	    $custom_editor .PKGINFO
+	else
+	    echo
+	fi
     fi
 fi
 
