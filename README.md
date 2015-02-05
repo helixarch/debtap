@@ -19,7 +19,7 @@ A script for converting .deb packages into Arch Linux packages, focused on accur
 
 **Q: Debtap needs a lot of time to convert a package. So, why this is happening?**
 
-**A:** Like I said, debtap is focused on accuracy. It won't just unpank a .deb package and then repackage its data to an Arch Linux package, ignoring metadata. Depending on the speed of your processor and the package itself, conversion can take from a few seconds to several minutes.
+**A:** Like I said, debtap is focused on accuracy. It won't just unpack a .deb package and then repackage its data to an Arch Linux package, ignoring metadata. Depending on the speed of your processor and the package itself, conversion can take from a few seconds to several minutes.
 
 **Q: During conversion I get several warning messages, why?**
 
