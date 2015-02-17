@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+# #!/usr/bin/bash
 
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
@@ -53,7 +53,7 @@ if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1
 else
     ar p ../"$1" control.tar.gz | tar xz
 fi
-rm -rf $(ls * | grep -v 'control\|conffiles')
+rm -rf $(ls * | grep -v 'control\|preinst\|postinst\|prerm\|postrm\|conffiles')
 if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
     data_tar_check=`ar t ../"$2" | grep data`
     if [ $data_tar_check == data.tar.gz ]; then
@@ -208,12 +208,32 @@ fi
 echo "arch = `grep Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/all/any/'`" >> .PKGINFO
 
 # Generating size field
+if [ -e preinst ]; then
+    preinst_size=$(ls -l | grep preinst | gawk '{print $5}');
+else
+    preinst_size=0;
+fi
+if [ -e postinst ]; then
+    postinst_size=$(ls -l | grep postinst | gawk '{print $5}');
+else
+    postinst_size=0;
+fi
+if [ -e prerm ]; then
+    prerm_size=$(ls -l | grep prerm | gawk '{print $5}');
+else
+    prerm_size=0;
+fi
+if [ -e postrm ]; then
+    postrm_size=$(ls -l | grep postrm | gawk '{print $5}');
+else
+    postrm_size=0;
+fi
 if [ -e conffiles ]; then
     conffiles_size=$(ls -l | grep conffiles | gawk '{print $5}');
 else
     conffiles_size=0;
 fi
-echo "size =" $(expr `du -sb | tr -d " ."` - `ls -l | grep control | gawk '{print $5}'` - $conffiles_size - `ls -la | grep .PKGINFO | gawk '{print $5}'` - 4096) >> .PKGINFO
+echo "size =" $(expr `du -sb | tr -d " ."` - `ls -l | grep control | gawk '{print $5}'` - $preinst_size - $postinst_size - $prerm_size - $postrm_size - $conffiles_size - `ls -la | grep .PKGINFO | gawk '{print $5}'` - 4096) >> .PKGINFO
 
 # Generating license field
 if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
@@ -3280,52 +3300,116 @@ if [ -e /tmp/debtap-tmp/provisions-untranslated-names-only ]; then
 fi
 
 # Generating .INSTALL file (if necessary)
-if [ $(grep '^depend =' .PKGINFO | grep -q qt; echo $?) -eq 0 ]; then
+if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
     echo -e "\n${lightgreen}==>${NC} ${bold}Generating .INSTALL file...${normal}"
 
     SAVEIFS=$IFS
     IFS=$'\n'
-echo 'post_install() {
-    xdg-icon-resource forceupdate --theme hicolor &> /dev/null
-    if [ -f usr/bin/update-mime-database ]; then
-	update-mime-database usr/share/mime &> /dev/null
+    if [ -e preinst ] && [ -e postinst ]; then
+	echo "pre_install() {" > tempfile
+	grep -iv '#!\|automatically\|added\|generated' preinst | while read line; do
+	    echo "    $line" | sed s'/        /    /g' >> tempfile
+	done
+	echo "}" >> tempfile
+	echo -e "\npost_install() {" >> tempfile
+	if [ $(grep '^depend' .PKGINFO | grep -q qt; echo $?) -eq 0 ]; then
+	    echo '    xdg-icon-resource forceupdate --theme hicolor &> /dev/null' >> tempfile;
+	elif [ $(grep '^depend' .PKGINFO | grep -q gtk; echo $?) -eq 0 ]; then
+	    echo '    gtk-update-icon-cache -q -t -f usr/share/icons/hicolor' >> tempfile;
+	fi
+	grep -iv '#!\|automatically\|added\|generated' postinst | while read line; do
+	    echo "    $line" | sed s'/        /    /g' >> tempfile
+	done
+	if [ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) -eq 0 ]; then
+	    echo '    update-desktop-database -q' >> tempfile;
+	fi
+	echo "}" >> tempfile
+	echo -e "\npre_upgrade() {" >> tempfile
+	echo "    pre_install" >> tempfile
+	echo "}" >> tempfile
+	echo -e "\npost_upgrade() {" >> tempfile
+	echo "    post_install" >> tempfile
+	echo "}" >> tempfile
+    elif [ -e preinst ] && [ ! -e postinst ]; then
+	echo "pre_install() {" > tempfile
+	grep -iv '#!\|automatically\|added\|generated' preinst | while read line; do
+	    echo "    $line" | sed s'/        /    /g' >> tempfile
+	done
+	echo "}" >> tempfile
+	echo -e "\npre_upgrade() {" >> tempfile
+	echo "    pre_install" >> tempfile
+	echo "}" >> tempfile
+    elif [ -e postinst ] && [ ! -e preinst ]; then
+	echo -e "\npost_install() {" >> tempfile
+	if [ $(grep '^depend' .PKGINFO | grep -q qt; echo $?) -eq 0 ]; then
+	    echo '    xdg-icon-resource forceupdate --theme hicolor &> /dev/null' >> tempfile;
+	elif [ $(grep '^depend' .PKGINFO | grep -q gtk; echo $?) -eq 0 ]; then
+	    echo '    gtk-update-icon-cache -q -t -f usr/share/icons/hicolor' >> tempfile;
+	fi
+	grep -iv '#!\|automatically\|added\|generated' postinst | while read line; do
+	    echo "    $line" | sed s'/        /    /g' >> tempfile
+	done
+	if [ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) -eq 0 ]; then
+	    echo '    update-desktop-database -q' >> tempfile;
+	fi
+	echo "}" >> tempfile
+	echo -e "\npost_upgrade() {" >> tempfile
+	echo "    post_install" >> tempfile
+	echo "}" >> tempfile
     fi
-    update-desktop-database -q
-}
 
-post_upgrade() {
-    post_install
-}
-
-post_remove() {
-    post_install
-}' | while read line; do echo $line >> .INSTALL; done
-    IFS=$SAVEIFS
-elif [ $(grep '^depend =' .PKGINFO | grep -q gtk; echo $?) -eq 0 ]; then
-    echo -e "\n${lightgreen}==>${NC} ${bold}Generating .INSTALL file...${normal}"
-
-    SAVEIFS=$IFS
-    IFS=$'\n'
-echo 'post_install() {
-    gtk-update-icon-cache -q -t -f usr/share/icons/hicolor
-    if [ -f usr/bin/update-mime-database ]; then
-	update-mime-database usr/share/mime &> /dev/null
+    if [ -e prerm ]; then
+	echo -e "\npre_remove() {" >> tempfile
+	grep -iv '#!\|automatically\|added\|generated' prerm | while read line; do
+	    echo "    $line" | sed s'/        /    /g' >> tempfile
+	done
+	echo "}" >> tempfile
     fi
-    update-desktop-database -q
-}
 
-post_upgrade() {
-    post_install
-}
-
-post_remove() {
-    post_install
-}' | while read line; do echo $line >> .INSTALL; done
+    if [ -e postrm ]; then
+	echo -e "\npost_remove() {" >> tempfile
+	if [ $(grep '^depend' .PKGINFO | grep -q qt; echo $?) -eq 0 ]; then
+	    echo '    xdg-icon-resource forceupdate --theme hicolor &> /dev/null' >> tempfile;
+	elif [ $(grep '^depend' .PKGINFO | grep -q gtk; echo $?) -eq 0 ]; then
+	    echo '    gtk-update-icon-cache -q -t -f usr/share/icons/hicolor' >> tempfile;
+	fi
+	grep -iv '#!\|automatically\|added\|generated' postrm | while read line; do
+	    echo "    $line" | sed s'/        /    /g' >> tempfile
+	done
+	if [ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) -eq 0 ]; then
+	    echo '    update-desktop-database -q' >> tempfile;
+	fi
+	echo "}" >> tempfile
+    fi
     IFS=$SAVEIFS
+
+    if [[ $(sed -n "1{p;q;}" tempfile) == "" ]]; then
+	sed -i '1d' tempfile
+    fi
+
+    if [ $(grep Architecture: control \| grep -q i386; echo $?) -eq 0 ]; then
+	sed -i -e s'/ \/bin\// \/usr\/bin\//g' -e s'/ \/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/games\// \/usr\/bin\//g' -e s'/ \/lib\// \/usr\/lib\//g' -e s'/ \/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/local\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/local\/games\// \/usr\/bin\//g' -e s'/ \/usr\/local\/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/local\// \/usr\//g' tempfile
+	sed -i -e s'/=\/bin\//=\/usr\/bin\//g' -e s'/=\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/games\//=\/usr\/bin\//g' -e s'/=\/lib\//=\/usr\/lib\//g' -e s'/=\/lib32\//=\/usr\/lib\//g' -e s'/=\/usr\/lib32\//=\/usr\/lib\//g' -e s'/=\/usr\/local\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/local\/games\//=\/usr\/bin\//g' -e s'/=\/usr\/local\/lib32\//=\/usr\/lib\//g' -e s'/=\/usr\/local\//=\/usr\//g' tempfile
+	sed -i -e s'/>\/bin\//>\/usr\/bin\//g' -e s'/>\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/games\//>\/usr\/bin\//g' -e s'/>\/lib\//>\/usr\/lib\//g' -e s'/>\/lib32\//>\/usr\/lib\//g' -e s'/>\/usr\/lib32\//>\/usr\/lib\//g' -e s'/>\/usr\/local\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/local\/games\//>\/usr\/bin\//g' -e s'/>\/usr\/local\/lib32\//>\/usr\/lib\//g' -e s'/>\/usr\/local\//>\/usr\//g' tempfile
+	sed -i -e s'/<\/bin\//<\/usr\/bin\//g' -e s'/<\/sbin\//<\/usr\/bin\//g' -e s'/<\/usr\/sbin\//<\/usr\/bin\//g' -e s'/<\/usr\/games\//<\/usr\/bin\//g' -e s'/<\/lib\//<\/usr\/lib\//g' -e s'/<\/lib32\//<\/usr\/lib\//g' -e s'/<\/usr\/lib32\//<\/usr\/lib\//g' -e s'/<\/usr\/local\/sbin\//<\/usr\/bin\//g' -e s'/<\/usr\/local\/games\//<\/usr\/bin\//g' -e s'/<\/usr\/local\/lib32\//<\/usr\/lib\//g' -e s'/<\/usr\/local\//<\/usr\//g' tempfile
+	sed -i -e s'/"\/bin\//"\/usr\/bin\//g' -e s'/"\/sbin\//"\/usr\/bin\//g' -e s'/"\/usr\/sbin\//"\/usr\/bin\//g' -e s'/"\/usr\/games\//"\/usr\/bin\//g' -e s'/"\/lib\//"\/usr\/lib\//g' -e s'/"\/lib32\//"\/usr\/lib\//g' -e s'/"\/usr\/lib32\//"\/usr\/lib\//g' -e s'/"\/usr\/local\/sbin\//"\/usr\/bin\//g' -e s'/"\/usr\/local\/games\//"\/usr\/bin\//g' -e s'/"\/usr\/local\/lib32\//"\/usr\/lib\//g' -e s'/"\/usr\/local\//"\/usr\//g' tempfile
+	sed -i -e s"/'\/bin\//'\/usr\/bin\//g" -e s"/'\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/games\//'\/usr\/bin\//g" -e s"/'\/lib\//'\/usr\/lib\//g" -e s"/'\/lib32\//'\/usr\/lib\//g" -e s"/'\/usr\/lib32\//'\/usr\/lib\//g" -e s"/'\/usr\/local\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/local\/games\//'\/usr\/bin\//g" -e s"/'\/usr\/local\/lib32\//'\/usr\/lib\//g" -e s"/'\/usr\/local\//'\/usr\//g" tempfile
+    else
+	sed -i -e s'/ \/bin\// \/usr\/bin\//g' -e s'/ \/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/games\// \/usr\/bin\//g' -e s'/ \/lib\// \/usr\/lib\//g' -e s'/ \/lib32\// \/usr\/lib32\//g' -e s'/ \/lib64\// \/usr\/lib\//g' -e s'/ \/usr\/lib64\// \/usr\/lib\//g' -e s'/ \/usr\/local\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/local\/games\// \/usr\/bin\//g' -e s'/ \/usr\/local\/lib64\// \/usr\/lib\//g' -e s'/ \/usr\/local\// \/usr\//g' tempfile
+	sed -i -e s'/=\/bin\//=\/usr\/bin\//g' -e s'/=\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/games\//=\/usr\/bin\//g' -e s'/=\/lib\//=\/usr\/lib\//g' -e s'/=\/lib32\//=\/usr\/lib32\//g' -e s'/=\/lib64\//=\/usr\/lib\//g' -e s'/=\/usr\/lib64\//=\/usr\/lib\//g' -e s'/=\/usr\/local\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/local\/games\//=\/usr\/bin\//g' -e s'/=\/usr\/local\/lib64\//=\/usr\/lib\//g' -e s'/=\/usr\/local\//=\/usr\//g' tempfile
+	sed -i -e s'/>\/bin\//>\/usr\/bin\//g' -e s'/>\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/games\//>\/usr\/bin\//g' -e s'/>\/lib\//>\/usr\/lib\//g' -e s'/>\/lib32\//>\/usr\/lib32\//g' -e s'/>\/lib64\//>\/usr\/lib\//g' -e s'/>\/usr\/lib64\//>\/usr\/lib\//g' -e s'/>\/usr\/local\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/local\/games\//>\/usr\/bin\//g' -e s'/>\/usr\/local\/lib64\//>\/usr\/lib\//g' -e s'/>\/usr\/local\//>\/usr\//g' tempfile
+	sed -i -e s'/<\/bin\//<\/usr\/bin\//g' -e s'/<\/sbin\//<\/usr\/bin\//g' -e s'/<\/usr\/sbin\//<\/usr\/bin\//g' -e s'/<\/usr\/games\//<\/usr\/bin\//g' -e s'/<\/lib\//<\/usr\/lib\//g' -e s'/<\/lib32\//<\/usr\/lib32\//g' -e s'/<\/lib64\//<\/usr\/lib\//g' -e s'/<\/usr\/lib64\//<\/usr\/lib\//g' -e s'/<\/usr\/local\/sbin\//<\/usr\/bin\//g' -e s'/<\/usr\/local\/games\//<\/usr\/bin\//g' -e s'/<\/usr\/local\/lib64\//<\/usr\/lib\//g' -e s'/<\/usr\/local\//<\/usr\//g' tempfile
+	sed -i -e s'/"\/bin\//"\/usr\/bin\//g' -e s'/"\/sbin\//"\/usr\/bin\//g' -e s'/"\/usr\/sbin\//"\/usr\/bin\//g' -e s'/"\/usr\/games\//"\/usr\/bin\//g' -e s'/"\/lib\//"\/usr\/lib\//g' -e s'/"\/lib32\//"\/usr\/lib32\//g' -e s'/"\/lib64\//"\/usr\/lib\//g' -e s'/"\/usr\/lib64\//"\/usr\/lib\//g' -e s'/"\/usr\/local\/sbin\//"\/usr\/bin\//g' -e s'/"\/usr\/local\/games\//"\/usr\/bin\//g' -e s'/"\/usr\/local\/lib64\//"\/usr\/lib\//g' -e s'/"\/usr\/local\//"\/usr\//g' tempfile
+	sed -i -e s"/'\/bin\//'\/usr\/bin\//g" -e s"/'\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/games\//'\/usr\/bin\//g" -e s"/'\/lib\//'\/usr\/lib\//g" -e s"/'\/lib32\//'\/usr\/lib32\//g" -e s"/'\/lib64\//'\/usr\/lib\//g" -e s"/'\/usr\/lib64\//'\/usr\/lib\//g" -e s"/'\/usr\/local\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/local\/games\//'\/usr\/bin\//g" -e s"/'\/usr\/local\/lib64\//'\/usr\/lib\//g" -e s"/'\/usr\/local\//'\/usr\//g" tempfile
+    fi
+
+    sed -e s'/ \[\[ "\$1" = "configure" \]\] &&\| && \[\[ "\$1" = "configure" \]\]//g' -e s'/ \[ "\$1" = "configure" \] &&\| && \[ "\$1" = "configure" \]//g' -e s'/-x "`which update-menus 2> \/dev\/null`"\|-x "`which update-menus 2>\/dev\/null`"/-f usr\/bin\/update-mime-database/g' -e s'/update-menus/update-mime-database usr\/share\/mime \&> \/dev\/null/g' -e s'/dpkg --listfiles\|dpkg -L/pacman -Qql/g' -e s'/ dash / bash /g' tempfile | grep -v '^ \+set -e$' > .INSTALL
+
+    rm -rf tempfile
 fi
 
 # Removing metadata of original .deb package, virtual packages file and aur packages list
-rm -rf control conffiles virtual-packages aur-packages-list
+rm -rf control preinst postinst prerm postrm conffiles virtual-packages aur-packages-list
 
 # Prompting user for editing .PKGINFO and .INSTALL files
 if [[ "$1" != "-Q" ]] && [[ "$1" != "--Q" ]] && [[ "$1" != "-Quiet" ]] && [[ "$1" != "--Quiet" ]]; then
@@ -3368,7 +3452,7 @@ bsdtar -czf .MTREE --format=mtree --options='!all,use-set,type,uid,gid,mode,time
 # Creating final package in a fakeroot environment
 echo -e "\n${lightgreen}==>${NC} ${bold}Creating final package...${normal}"
 fakeroot << EOF
-tar --force-local -pcf `grep pkgname .PKGINFO | gawk '{print $3}'`-`grep pkgver .PKGINFO | gawk '{print $3}'`-`grep 'arch =' .PKGINFO | gawk '{print $3}'`.pkg.tar * .PKGINFO .INSTALL .MTREE 2> /dev/null
+tar --force-local -pcf `grep '^pkgname' .PKGINFO | gawk '{print $3}'`-`grep '^pkgver' .PKGINFO | gawk '{print $3}'`-`grep '^arch' .PKGINFO | gawk '{print $3}'`.pkg.tar * .PKGINFO .INSTALL .MTREE 2> /dev/null
 xz -z -9 *.tar
 EOF
 mv *.xz ../
