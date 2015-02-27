@@ -5,6 +5,10 @@ A script for converting .deb packages into Arch Linux packages, focused on accur
 
 # FAQ
 
+**Q: What "debtap" stands for?**
+
+**A:** DEB To Arch (Linux) Package
+
 **Q: Isn't better to download an official package or write a PKGBUILD in case I need to compile a package or convert a .deb package to an Arch Linux package?**
 
 **A:** Sure it is, and I truely encourage you to do so. Debtap was written to create packages that either cannot be compiled (closed source packages) or cannot be built from AUR for various reasons (error during compiling or unavailable files), as a quick 'n' dirty solution and an extra option for creating Arch Linux packages for Arch Linux users.

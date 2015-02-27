@@ -158,7 +158,7 @@ if [ $(grep ^Version: control | gawk '{print $2}' | grep -q "svn\|git\|cvs\|CVS\
 fi
 
 # Generating pkgver field
-version=$(grep ^Version: control | gawk '{print $2}' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\./\./' | sed s'/\.$//')
+version=$(grep ^Version: control | gawk '{print $2}' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\././g' | sed s'/\.$//')
 for i in {git,bzr,darcs,hg}; do
     if [ $(echo $version | grep -q $i; echo $?) -eq 0 ]; then
 	echo "pkgver = `echo $version | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`"-1 >> .PKGINFO;
@@ -285,7 +285,7 @@ for i in $(for j in `cat tempfile05`; do echo $j-tempfile04; done); do
     fi;
 done
 
-cat tempfile06 | sed s'/=/ = /g' | sed s'/>/ > /g' | sed s'/</ < /g' | sed s'/>  =/>=/g' | sed s'/<  =/<=/g' | sed s'/-multilib\|lib32-//g' > tempfile07
+cat tempfile06 | sed s'/=/ = /g' | sed s'/>/ > /g' | sed s'/</ < /g' | sed s'/>  =/>=/g' | sed s'/<  =/<=/g' | sed s'/-multilib$\|^lib32-//g' > tempfile07
 
 cat tempfile07 | while read line; do
     if [ $(echo "$line" | wc -w) -eq 0 ]; then
@@ -345,7 +345,7 @@ if [ -e untranslated-names-only ]; then
 	fi;
     done
 
-    cat tempfile11 | sed s'/=/ = /g' | sed s'/>/ > /g' | sed s'/</ < /g' | sed s'/>  =/>=/g' | sed s'/<  =/<=/g' | sed s'/-multilib\|lib32-//g' > tempfile12
+    cat tempfile11 | sed s'/=/ = /g' | sed s'/>/ > /g' | sed s'/</ < /g' | sed s'/>  =/>=/g' | sed s'/<  =/<=/g' | sed s'/-multilib$\|^lib32-//g' > tempfile12
 
     cat tempfile12 | while read line; do
 	if [ $(echo "$line" | wc -w) -eq 0 ]; then
@@ -3063,7 +3063,7 @@ if [ -e missing-files ]; then
     rm -rf missing-files
 fi
 
-# Special rules for (non optional) dependencies
+# Special rules for non optional dependencies
 if [ -e dependencies-initial-check-list ]; then
     grep -q qt final-check-list && echo hicolor-icon-theme >> final-check-list
     grep -q gtk final-check-list && echo -e "hicolor-icon-theme\ndesktop-file-utils" >> final-check-list
@@ -3075,13 +3075,13 @@ grep -q libgl1 tempfile02 && echo libgl >> final-check-list;
 grep -q libglu1 tempfile02 && echo glu >> final-check-list;
 grep -q default-jre tempfile02 && echo java-runtime >> final-check-list;
 grep -q python:any tempfile02 && echo python >> final-check-list;
-grep libpango tempfile02 | grep -v libpangomm | sed s"/`grep libpango tempfile02 | grep -v libpangomm | gawk '{print $1}' | head -1`/pango/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' | sed s'/-multilib\|lib32-//g' >> final-check-list;
-grep libpangomm tempfile02 | sed s"/`grep libpangomm tempfile02 | gawk '{print $1}' | head -1`/pangomm/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' | sed s'/-multilib\|lib32-//g' >> final-check-list;
+grep libpango tempfile02 | grep -v libpangomm | sed s"/`grep libpango tempfile02 | grep -v libpangomm | gawk '{prinrt $1}' | head -1`/pango/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' | sed s'/-multilib$\|^lib32-//g' >> final-check-list;
+grep libpangomm tempfile02 | sed s"/`grep libpangomm tempfile02 | gawk '{print $1}' | head -1`/pangomm/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' | sed s'/-multilib$\|^lib32-//g' >> final-check-list;
 grep -q fonts-freefont-ttf tempfile02 && echo ttf-freefont >> final-check-list;
 
 # Stripping unnecessary symbols and words from packages versions
 grep -v "^$" final-check-list | while read line; do
-    echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\./\./g' | sed s'/\.$//'`" >> tempfile13;
+    echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\././g' | sed s'/\.$//'`" >> tempfile13;
 done
 
 # Special rules for version control systems
@@ -3215,7 +3215,7 @@ if [ -e conffiles ]; then
     rm -rf tempfile
 fi
 
-# Generating (non optional) dependencies fields
+# Generating non optional dependencies fields
 if [ $(grep -q Depends: control; echo $?) -eq 0 ]; then
     grep Depends: control | sed -e s'/Pre-Depends: //' -e s'/Depends: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/ |//g' | tr -d "," | while read line; do
 	for word in $line; do
