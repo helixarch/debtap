@@ -3047,15 +3047,11 @@ if [ -e new-untranslated-names-only ]; then
 fi
 
 # Appending untranslated packages names (if any exist) to the translated packages names list
-if [ -e new-untranslated ]; then
-    if [ $(cat new-untranslated | wc -l) -eq 0 ]; then
-	rm -rf new-untranslated
-    else
-	tac new-untranslated | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
-	gawk '{print $1}' new-untranslated | sort -u > $(echo `ls | grep initial-check-list` | sed s'/initial-check-list/untranslated-names-only/')
-	rm -rf new-untranslated
-    fi
+if [ -e new-untranslated ] && [ $(cat new-untranslated | wc -l) -ne 0 ]; then
+    tac new-untranslated | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
+    gawk '{print $1}' new-untranslated | sort -u > $(echo `ls | grep initial-check-list` | sed s'/initial-check-list/untranslated-names-only/')
 fi
+rm -rf new-untranslated
 
 # Sorting packages with missing files (if any exist)
 if [ -e missing-files ]; then
