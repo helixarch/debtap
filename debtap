@@ -3047,7 +3047,7 @@ if [ -e new-untranslated-names-only ]; then
 fi
 
 # Appending untranslated packages names (if any exist) to the translated packages names list
-if [ -e new-untranslated ] && [ $(cat new-untranslated | wc -l) -ne 0 ]; then
+if [ -e new-untranslated ] && [ $(cat new-untranslated 2> /dev/null | wc -l) -ne 0 ]; then
     tac new-untranslated | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
     gawk '{print $1}' new-untranslated | sort -u > $(echo `ls | grep initial-check-list` | sed s'/initial-check-list/untranslated-names-only/')
 fi
