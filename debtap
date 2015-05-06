@@ -3159,13 +3159,13 @@ done
 
 # Generating replacements fields
 if [ $(grep -q Replaces: control; echo $?) -eq 0 ]; then
-    grep Replaces: control | sed -e s'/Replaces: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/ |//g' | tr -d "," | while read line; do
+    grep Replaces: control | sed -e s'/Replaces: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg' tempfile02 > replacements-initial-check-list
+    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg\|apt-get\|aptitude' tempfile02 > replacements-initial-check-list
     packages-names-translator
     for i in `sort -u tempfile20`; do echo "replaces = $i" >> .PKGINFO ; done
     rm -rf *tempfile* replacements-initial-check-list final-check-list
@@ -3173,13 +3173,13 @@ fi
 
 # Generating conflicts fields
 if [ $(grep -q Conflicts: control; echo $?) -eq 0 ]; then
-    grep Conflicts: control | sed -e s'/Conflicts: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/ |//g' | tr -d "," | while read line; do
+    grep Conflicts: control | sed -e s'/Conflicts: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg' tempfile02 > conflicts-initial-check-list
+    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg\|apt-get\|aptitude' tempfile02 > conflicts-initial-check-list
     packages-names-translator
     for i in `sort -u tempfile20`; do echo "conflict = $i" >> .PKGINFO ; done
     rm -rf *tempfile* conflicts-initial-check-list final-check-list
@@ -3187,13 +3187,13 @@ fi
 
 # Generating provisions fields
 if [ $(grep -q Provides: control; echo $?) -eq 0 ]; then
-    grep Provides: control | sed -e s'/Provides: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/ |//g' | tr -d "," | while read line; do
+    grep Provides: control | sed -e s'/Provides: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg' tempfile02 > provisions-initial-check-list
+    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg\|apt-get\|aptitude' tempfile02 > provisions-initial-check-list
     packages-names-translator
     for i in `sort -u tempfile20`; do echo "provides = $i" >> .PKGINFO ; done
     rm -rf *tempfile* provisions-initial-check-list final-check-list
@@ -3213,13 +3213,13 @@ fi
 
 # Generating non optional dependencies fields
 if [ $(grep -q Depends: control; echo $?) -eq 0 ]; then
-    grep Depends: control | sed -e s'/Pre-Depends: //' -e s'/Depends: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/ |//g' | tr -d "," | while read line; do
+    grep Depends: control | sed -e s'/Pre-Depends: //' -e s'/Depends: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg' tempfile02 > dependencies-initial-check-list
+    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg\|apt-get\|aptitude' tempfile02 > dependencies-initial-check-list
     packages-names-translator
     for i in `sort -u tempfile20`; do echo "depend = $i" >> .PKGINFO ; done
     rm -rf *tempfile* dependencies-initial-check-list final-check-list
@@ -3227,13 +3227,13 @@ fi
 
 # Generating optional dependencies fields
 if [ $(grep -q 'Recommends:\|Suggests:' control; echo $?) -eq 0 ]; then
-    grep 'Recommends:\|Suggests:' control | sed -e s'/Recommends: \|Suggests: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/ |//g' | tr -d "," | while read line; do
+    grep 'Recommends:\|Suggests:' control | sed -e s'/Recommends: \|Suggests: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg' tempfile02 > optional-dependencies-initial-check-list
+    grep -v 'libgl1\|libglu1\|default-jre\|python:any\|libpango\|fonts-freefont-ttf\|dpkg\|apt-get\|aptitude' tempfile02 > optional-dependencies-initial-check-list
     packages-names-translator
     for i in `sort -u tempfile20`; do
 	j=$(echo $i | sed s'/=\|>\|</ /' | gawk '{print $1}')
