@@ -40,15 +40,15 @@ elif [[ "$1" == "-u" ]] || [[ "$1" = "--u" ]] || [[ "$1" == "-update" ]] || [[ "
                 fi
                 ubuntu_latest_development_version=`curl -s http://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 2'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g'`
                 curl -C - -f http://ftp.debian.org/debian/dists/sid/Contents-$_arch.gz > /var/cache/debtap/debian-packages-files.gz
-                gzip -d /var/cache/debtap/debian-packages-files.gz
+                gzip -df /var/cache/debtap/debian-packages-files.gz
                 curl -C - -f http://archive.ubuntu.com/ubuntu/dists/$ubuntu_latest_development_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
-                gzip -d /var/cache/debtap/ubuntu-packages-files.gz
+                gzip -df /var/cache/debtap/ubuntu-packages-files.gz
                 if [[ $(echo $?) != 0 ]]; then
                     echo -e "${red}Synchronization failed. Exiting...${NC}"; exit 1
                 else
                     echo -e "${lightgreen}==>${NC} ${bold}Downloading latest AUR packages list...${normal}"
                     curl -C - -f https://aur.archlinux.org/packages.gz > /var/cache/debtap/aur-packages.gz
-                    gzip -d /var/cache/debtap/aur-packages.gz
+                    gzip -df /var/cache/debtap/aur-packages.gz
                     if [[ $(echo $?) != 0 ]]; then
                         echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
                     else
