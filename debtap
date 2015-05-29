@@ -73,49 +73,32 @@ if [[ $(ls /var/cache/pkgfile/*.files 2> /dev/null | wc -l) == 0 ]] || [[ $(ls /
     echo -e "${red}Error: You must run at least once \"debtap -u\" with root privileges (preferably recently), before running this script${NC}"; exit 1
 fi
 
-# Defining and creating working directory
+# Defining package with full path & defining and creating working directory
 if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
-    working_directory="`ls "$2" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb//'`-working-directory"
+    package_with_full_path="`readlink -f "$2"`"
+    working_directory="`basename "$2" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb//'`-working-directory"
 else
-    working_directory="`ls "$1" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb//'`-working-directory"
+    package_with_full_path="`readlink -f "$1"`"
+    working_directory="`basename "$1" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb//'`-working-directory"
 fi
 mkdir "$working_directory"
 cd "$working_directory"
 
 # Extracting package data and metadata in working directory
 echo -e "${lightgreen}==>${NC} ${bold}Extracting package data...${normal}"
-if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
-    ar p ../"$2" control.tar.gz | tar xz
-else
-    ar p ../"$1" control.tar.gz | tar xz
-fi
+ar p "$package_with_full_path" control.tar.gz | tar xz
 rm -rf $(ls * | grep -v 'control\|preinst\|postinst\|prerm\|postrm\|conffiles')
-if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
-    data_tar_check=`ar t ../"$2" | grep data`
-    if [ $data_tar_check == data.tar.gz ]; then
-	ar p ../"$2" data.tar.gz | tar xz
-    elif [ $data_tar_check == data.tar.xz ]; then
-	ar p ../"$2" data.tar.xz | tar xJ
-    elif [ $data_tar_check == data.tar.bz2 ]; then
-	ar p ../"$2" data.tar.bz2 | tar xj
-    elif [ $data_tar_check == data.tar.lzma ]; then
-	ar p ../"$2" data.tar.lzma | tar xJ
-    elif [ $data_tar_check == data.tar ]; then
-	ar p ../"$2" data.tar | tar x
-    fi
-else
-    data_tar_check=`ar t ../"$1" | grep data`
-    if [ $data_tar_check == data.tar.gz ]; then
-	ar p ../"$1" data.tar.gz | tar xz
-    elif [ $data_tar_check == data.tar.xz ]; then
-	ar p ../"$1" data.tar.xz | tar xJ
-    elif [ $data_tar_check == data.tar.bz2 ]; then
-	ar p ../"$1" data.tar.bz2 | tar xj
-    elif [ $data_tar_check == data.tar.lzma ]; then
-	ar p ../"$1" data.tar.lzma | tar xJ
-    elif [ $data_tar_check == data.tar ]; then
-	ar p ../"$1" data.tar | tar x
-    fi
+data_tar_check=`ar t "$package_with_full_path" | grep data`
+if [ $data_tar_check == data.tar.gz ]; then
+    ar p "$package_with_full_path" data.tar.gz | tar xz
+elif [ $data_tar_check == data.tar.xz ]; then
+    ar p "$package_with_full_path" data.tar.xz | tar xJ
+elif [ $data_tar_check == data.tar.bz2 ]; then
+    ar p "$package_with_full_path" data.tar.bz2 | tar xj
+elif [ $data_tar_check == data.tar.lzma ]; then
+    ar p "$package_with_full_path" data.tar.lzma | tar xJ
+elif [ $data_tar_check == data.tar ]; then
+    ar p "$package_with_full_path" data.tar | tar x
 fi
 
 # Fixing possible differences in filesystem hierarchy of the extracted package data, so that it matches Arch Linux filesystem hierarchy
@@ -3480,7 +3463,7 @@ fakeroot << EOF
 tar --force-local -pcf `grep '^pkgname' .PKGINFO | gawk '{print $3}'`-`grep '^pkgver' .PKGINFO | gawk '{print $3}'`-`grep '^arch' .PKGINFO | gawk '{print $3}'`.pkg.tar * .PKGINFO .INSTALL .MTREE 2> /dev/null
 xz -z -9 *.tar
 EOF
-mv *.xz ../
+mv *.xz "$(dirname "$package_with_full_path")"
 cd ..
 
 # Removing leftover files
