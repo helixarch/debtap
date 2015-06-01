@@ -326,7 +326,7 @@ for i in $(eval echo {1..$(cat `ls | grep initial-check-list` | wc -l)}); do
     fi
 done
 
-# Second method for translating remaining untranslated .deb packages names into Arch Linux packages names, same as first method, but searches in Ubuntu website for packages contents instead of Debian website
+# Second method for translating remaining untranslated .deb packages names into Arch Linux packages names, same as first method, but searches in Ubuntu database for packages contents instead of Debian database
 if [ -e untranslated-names-only ]; then
     for ubuntu_package_name in $(sort -u untranslated-names-only); do
         for ubuntu_package_file in `grep "\/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
