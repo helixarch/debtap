@@ -3417,7 +3417,7 @@ if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
 fi
 
 # Removing metadata of original .deb package and virtual packages list
-rm -rf control preinst postinst prerm postrm conffiles virtual-packages and virtual
+rm -rf control preinst postinst prerm postrm conffiles virtual-packages
 
 # Prompting user for editing .PKGINFO and .INSTALL files
 if [[ "$1" != "-Q" ]] && [[ "$1" != "--Q" ]] && [[ "$1" != "-Quiet" ]] && [[ "$1" != "--Quiet" ]]; then
