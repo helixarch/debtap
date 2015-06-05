@@ -27,6 +27,7 @@ elif [[ "$1" == "-u" ]] || [[ "$1" = "--u" ]] || [[ "$1" == "-update" ]] || [[ "
         if [[ $EUID != 0 ]]; then
             echo -e "${red}Error: You must run this command with root privileges${NC}"; exit 1
         else
+            mkdir -p /var/cache/debtap 2> /dev/null
             echo -e "${lightgreen}==>${NC} ${bold}Synchronizing pkgfile database...${normal}"
             pkgfile -u
             if [[ $(echo $?) != 0 ]]; then
