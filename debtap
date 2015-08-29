@@ -259,7 +259,7 @@ echo "size =" $(expr `du -sb | tr -d " ."` - `ls -l | grep control | gawk '{prin
 if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
     echo "license = custom" >> .PKGINFO
 else
-    echo -e "\n${lightblue}::${NC} Enter package license (you can enter multiple licenses comma seperated):"
+    echo -e "\n${lightblue}::${NC} Enter package license (you can enter multiple licenses comma separated):"
     read package_license
     for i in `echo "$package_license" | sed -e s'/ /__/g' -e s'/,/ /g'`; do
 	license+=($i)
