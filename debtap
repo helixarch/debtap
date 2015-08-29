@@ -398,21 +398,28 @@ if [ -e new-untranslated-names-only ]; then
             echo 'aircrack-ng-scripts
             alsa-tools-emu10k1
             alsa-tools-ice1712
+            american-fuzzy-lop
             antigrain
             antlr
+            appdata-tools
             arpack-ng
+            ati-dri
+            attica
             audacious-player
             aumix-gtk
             avidemux
             awk
+            baloo-frameworks
             beanshell
             bluez-hcidump
             bsh
             btrfs-progs-unstable
+            ca-certificates-java
             cairo-xcb
             cheetah
             cl-asdf
             claws
+            coin-mp
             common-lisp
             cron
             dbus-core
@@ -424,17 +431,21 @@ if [ -e new-untranslated-names-only ]; then
             digest-hmac
             digest-nilsimsa
             digest-sha1
+            dirmngr
+            display-manager
+            djview4
             dns-server
+            dnsutils
             docutils
             doublecmd
             d-runtime
             d-stdlib
+            eclipse
             eigen3
             eject
             emacs-w3m
             enblend
             enlightenment17
-            eric5
             fam
             fcitx-qt
             ffado
@@ -442,12 +453,12 @@ if [ -e new-untranslated-names-only ]; then
             flake8-python2
             flake8-python3
             flashplayer
-            fonttools
+            font-misc-ethiopic
+            font-misc-meltho
             font-util
             foomatic-db-hpijs
             foomatic-filters
             gambas3-gb-gui
-            gcc-avr
             gdisk
             gearman
             gimp-mathmap
@@ -456,18 +467,20 @@ if [ -e new-untranslated-names-only ]; then
             git-core
             glut
             gnupg2
-            go-openoffice
+            grantlee
             grmlzshrc
             grub-bios
             grub-common
             grub-efi-i386
             grub-emu
+            gsa
             gst-ffmpeg
+            gst-vaapi
             gtk2hs-cairo
             gtk2hs-glib
             gtk2hs-gtk
             gtk2hs-pango
-            gtk-xfce-engine
+            gtk2-xfce-engine
             guitarix
             gummiboot-efi
             gx_head
@@ -484,26 +497,27 @@ if [ -e new-untranslated-names-only ]; then
             haskell-filepath
             haskell-ghc-prim
             haskell-gtk2hs-buildtools
-            haskell-haskell2010
-            haskell-haskell98
+            haskell-haskeline
             haskell-hoopl
             haskell-hpc
             haskell-integer-gmp
-            haskell-old-locale
-            haskell-old-time
             haskell-pretty
             haskell-process
             haskell-template-haskell
+            haskell-terminfo
             haskell-time
             haskell-transformers
             haskell-unix
+            haskell-xhtml
             heirloom-mailx
             howl
+            html2text
             html-tagset
             httplib2
             hubbub
             imap-server
             inputattach
+            intel-dri
             iproute
             ipython3
             ircd
@@ -513,15 +527,23 @@ if [ -e new-untranslated-names-only ]; then
             jackmp
             jam
             java-environment
+            java-environment-openjdk
             java-runtime
             java-runtime-headless
+            java-runtime-headless-openjdk
+            java-runtime-openjdk
             java-web-start
             java-xerces2
             jenkins-ci
             joschy
             joystick
             kactivities
+            kdebase-katepart
+            kdebase-konsole
+            kdebase-kwrite
             kdeplasma-addons-dataengines
+            kdesdk-kate
+            kdesdk-okteta
             kernel26
             kernel26-docs
             kernel26-grsec
@@ -533,42 +555,185 @@ if [ -e new-untranslated-names-only ]; then
             kernel26-lts-headers
             kernel26-manpages
             khrplatform-devel
-            kpackagekit
             kpathsea
+            ksshaskpass-frameworks
             lancelot
             lcdf-typetools
+            lessc
+            libaccounts-qt
             libao-pulse
             libarchive.so
+            libavcodec.so
+            libavdevice.so
+            libavfilter.so
+            libavformat.so
+            libavresample.so
+            libavutil.so
             libblkid.so
+            libcl
             libcurl.so
+            libdbusmenu-qt
+            libdivecomputer
             libdjvu
             libdts
             libefivar
             libegl
-            libelf
             libextl
+            libfdisk.so
+            libfdk-aac.so
+            libffms2.so
+            libform.so
+            libformw.so
             libgbm
             libglapi
             libgles
             libgudev-1.0.so
             libjpeg
             libkmod.so
+            libkscreen-frameworks
+            liblsmash.so
+            libltdl
+            libmenu.so
+            libmenuw.so
             libmount.so
             libmysqlclient
+            libncurses.so
+            libncurses++w.so
+            libncursesw.so
+            libnm-gtk
+            libnm-qt
+            libobrender.so
             liborigin
+            libpanel.so
+            libpanelw.so
+            libpostproc.so
             libprofiler.so
-            libreoffice-extension-pdfimport
-            libreoffice-extension-presenter-screen
-            libreoffice-extension-report-builder
-            libreoffice-extension-scripting-python
+            libprotobuf-c.so
+            libreoffice
+            libreoffice-af
+            libreoffice-am
+            libreoffice-ar
+            libreoffice-as
+            libreoffice-ast
+            libreoffice-be
+            libreoffice-bg
+            libreoffice-bn
+            libreoffice-bn-IN
+            libreoffice-bo
+            libreoffice-br
+            libreoffice-brx
+            libreoffice-bs
+            libreoffice-ca
+            libreoffice-ca-valencia
+            libreoffice-cs
+            libreoffice-cy
+            libreoffice-da
+            libreoffice-de
+            libreoffice-dgo
+            libreoffice-dz
+            libreoffice-el
+            libreoffice-en-GB
+            libreoffice-en-US
+            libreoffice-en-ZA
+            libreoffice-eo
+            libreoffice-es
+            libreoffice-et
+            libreoffice-eu
+            libreoffice-fa
+            libreoffice-fi
+            libreoffice-fr
+            libreoffice-ga
+            libreoffice-gd
+            libreoffice-gl
+            libreoffice-gu
+            libreoffice-he
+            libreoffice-hi
+            libreoffice-hr
+            libreoffice-hu
+            libreoffice-id
+            libreoffice-is
+            libreoffice-it
+            libreoffice-ja
+            libreoffice-ka
+            libreoffice-kk
+            libreoffice-km
+            libreoffice-kmr-Latn
+            libreoffice-kn
+            libreoffice-ko
+            libreoffice-kok
+            libreoffice-ks
             libreoffice-langpack
-            libreoffice-scripting-beanshell
-            libreoffice-scripting-javascript
+            libreoffice-lb
+            libreoffice-lo
+            libreoffice-lt
+            libreoffice-lv
+            libreoffice-mai
+            libreoffice-mk
+            libreoffice-ml
+            libreoffice-mn
+            libreoffice-mni
+            libreoffice-mr
+            libreoffice-my
+            libreoffice-nb
+            libreoffice-ne
+            libreoffice-nl
+            libreoffice-nn
+            libreoffice-nr
+            libreoffice-nso
+            libreoffice-oc
+            libreoffice-om
+            libreoffice-or
+            libreoffice-pa-IN
+            libreoffice-pl
+            libreoffice-pt
+            libreoffice-pt-BR
+            libreoffice-ro
+            libreoffice-ru
+            libreoffice-rw
+            libreoffice-sa-IN
+            libreoffice-sat
+            libreoffice-sd
+            libreoffice-sdk
+            libreoffice-sdk-doc
+            libreoffice-si
+            libreoffice-sid
+            libreoffice-sk
+            libreoffice-sl
+            libreoffice-sq
+            libreoffice-sr
+            libreoffice-sr-Latn
+            libreoffice-ss
+            libreoffice-st
+            libreoffice-still-langpack
+            libreoffice-still-sdk-doc
+            libreoffice-sv
+            libreoffice-sw-TZ
+            libreoffice-ta
+            libreoffice-te
+            libreoffice-tg
+            libreoffice-th
+            libreoffice-tn
+            libreoffice-tr
+            libreoffice-ts
+            libreoffice-tt
+            libreoffice-ug
+            libreoffice-uk
+            libreoffice-uz
+            libreoffice-ve
+            libreoffice-vi
+            libreoffice-xh
+            libreoffice-zh-CN
+            libreoffice-zh-TW
+            libreoffice-zu
             librime-data
+            librsync.so
             libsigc++2.0
             libsigc++2.0-docs
+            libsmartcols.so
             libsoup-gnome
             libssh2.so
+            libswresample.so
+            libswscale.so
             libsystemd-daemon.so
             libsystemd-id128.so
             libsystemd-journal.so
@@ -579,35 +744,38 @@ if [ -e new-untranslated-names-only ]; then
             libtcmalloc_minimal_debug.so
             libtcmalloc_minimal.so
             libtcmalloc.so
+            libtextcat
+            libtool-multilib
             libtu
             libudev.so
             libusbx
             libuuid.so
             libv4l
             libvisual-projectm
+            libvorbisenc.so
+            libvorbisfile.so
+            libvorbis.so
+            libvpx.so
             libwebkit
             libwebkit3
+            libx264.so
+            libx265.so
             libxml++2
-            lightdm-gtk-greeter
-            links-g
+            libxvidcore.so
+            libyubikey
+            lirc-utils
             lmms-extras
             logger
             lv2core
             lxshortcut
+            lzo2
             mailx
             mailx-heirloom
             man
             mate-calc
-            mate-document-viewer
-            mate-file-archiver
-            mate-file-manager
-            mate-image-viewer
-            mate-media
-            mate-menu-editor
-            mate-settings-daemon
-            mate-text-editor
-            mate-window-manager
             mdnsresponder
+            mesa-dri
+            mingw-w64-gcc-base
             mkvtoolnix
             module-init-tools
             monodoc
@@ -615,11 +783,16 @@ if [ -e new-untranslated-names-only ]; then
             mysql
             mysql-clients
             mythes
+            nagios-plugins
             netcat
             net-ssleay
+            nmap-vulscan
             nodejs-node-gyp
+            nouveau-dri
+            nslcd
             nss-myhostname
             ntfsprogs
+            opencl-icd-loader
             openoffice-af
             openoffice-am
             openoffice-ar
@@ -643,7 +816,6 @@ if [ -e new-untranslated-names-only ]; then
             openoffice-dz
             openoffice-el
             openoffice-en-GB
-            openoffice-en-US
             openoffice-en-ZA
             openoffice-eo
             openoffice-es
@@ -732,14 +904,11 @@ if [ -e new-untranslated-names-only ]; then
             openoffice-zu
             osmesa
             pacman-contrib
+            pam_yubico
+            passmenu
             pdfjam
             pdflib
-            pdns
-            pdns-ldap
-            pdns-mysql
-            pdns-pgsql
             pdns-recursor
-            pdns-sqlite
             pep8-python2
             pep8-python3
             perl-apache-soap
@@ -753,7 +922,6 @@ if [ -e new-untranslated-names-only ]; then
             perl-b-debug
             perl-bignum
             perl-carp
-            perl-cgi
             perl-class-accessor-fast
             perl-class-accessor-faster
             perl-compress-raw-bzip2
@@ -761,7 +929,6 @@ if [ -e new-untranslated-names-only ]; then
             perl-config-perl-v
             perl-constant
             perl-cpan
-            perl-cpan-meta
             perl-cpan-meta-requirements
             perl-cpan-meta-yaml
             perl-db_file
@@ -851,7 +1018,6 @@ if [ -e new-untranslated-names-only ]; then
             perl-module-loaded
             perl-module-metadata
             perl-net-ping
-            perl-package-constants
             perl-params-check
             perl-parent
             perl-parse-cpan-meta
@@ -867,6 +1033,9 @@ if [ -e new-untranslated-names-only ]; then
             perl-pod-perldoc
             perl-pod-simple
             perl-pod-usage
+            perl-proc-killall
+            perl-proc-killfam
+            perl-proc-processtable-process
             perl-safe
             perl-scalar-list-utils
             perl-search-dict
@@ -930,7 +1099,6 @@ if [ -e new-untranslated-names-only ]; then
             perl-unicode-stringprep-unassigned
             perl-uri-escape
             perl-version
-            perlxml
             perl-xml-libxml-common
             perl-xml-parser-lite
             perl-xmlrpc-lite
@@ -945,12 +1113,15 @@ if [ -e new-untranslated-names-only ]; then
             phonon-qt5-backend
             php-apc
             pion-net
+            pivy
             pkgconfig
             plan9
+            polarssl
             polkit-qt
             pop3-server
             poppler-qt
             portaudio_cpp
+            postfix-tools
             postgresql-client
             premake4
             procinfo
@@ -966,7 +1137,6 @@ if [ -e new-untranslated-names-only ]; then
             pybonjour
             pycairo
             pycrypto
-            pycups
             pydot
             pyexiv2
             pyglet
@@ -975,13 +1145,13 @@ if [ -e new-untranslated-names-only ]; then
             pypoppler
             pyqt
             pyqt-common
-            pysmbc
+            pyqwt
+            python2-autobahn
             python2-distribute
             python2-gevent-beta
             python2-imaging
-            python2-mayavi
+            python2-libmproxy
             python2-mmkeys
-            python2-openpyxl
             python2-pyqt
             python2-pyxenstore
             python2-udev
@@ -990,20 +1160,19 @@ if [ -e new-untranslated-names-only ]; then
             python3-scipy
             python-antlr
             python-beautifulsoup
-            python-caja
             python-cheetah
             python-distribute
             python-gflags
             python-imaging
             python-keybinder
             python-nautilus
-            python-openpyxl
             python-poppler
-            python-waf
             pyudev
             pyxattr
             pyxdg
             qt-doc
+            qtkeychain
+            quodlibet-plugins
             qupzilla-qt5
             raismth
             rake
@@ -1013,26 +1182,29 @@ if [ -e new-untranslated-names-only ]; then
             rox-lib2
             rubygems
             rxtx
+            s3fs
+            sage-mathematics
+            salt
+            salt-api
             sbuild
             scipy
             sdl_perl
             setuptools
             sh
+            signon-qt5
+            sk1sdk
             smtp-forwarder
             smtp-server
-            speechd
             sqlite3
             sqlite3-doc
             sqlite3-tcl
-            squeak
             sunpinyin-data-le
+            svga-dri
             svn
             synaptics
-            synce-librapi
-            synce-libsynce
             systemd-tools
             sysvinit-tools
-            telepathy-qt4
+            telepathy-qt
             test-number-delta
             Test::Number::Delta
             tetex
@@ -1055,12 +1227,12 @@ if [ -e new-untranslated-names-only ]; then
             twisted
             udev
             umfpack
-            urw-fonts
             urxvt-keyboard-select
             urxvt-url-select
             util-linux-ng
-            vapoursynth-plugin-ffms2
+            vapoursynth-plugin-ffms2i
             vlock
+            vte3-select-text
             webkitgtk3
             x264-10bit
             x264-dev
@@ -1068,6 +1240,7 @@ if [ -e new-untranslated-names-only ]; then
             X-ABI-EXTENSION_VERSION
             X-ABI-VIDEODRV_VERSION
             X-ABI-XINPUT_VERSION
+            xbmc
             xf86-video-intel-sna
             xf86-video-intel-uxa
             xfce4-dict-plugin
@@ -1079,11 +1252,16 @@ if [ -e new-untranslated-names-only ]; then
             xorriso
             xorriso-tcltk
             x-server
+            xxd
+            ykclient
+            ykpers
+            yubikey-personalization-tool
             zbar-gtk
             zbar-qt
             zd1211
             zeitgeist-datahub
-            zope-interface' | while read line; do echo $line >> virtual-packages; done
+            zope-interface
+            zramctl' | while read line; do echo $line >> virtual-packages; done
         fi
 
 	pacman -Ssq $(echo "$j" | sed s'/^lib//') | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' > result1
