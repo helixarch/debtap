@@ -77,10 +77,10 @@ fi
 # Defining package with full path & defining and creating working directory
 if [[ "$1" == "-q" ]] || [[ "$1" == "--q" ]] || [[ "$1" == "-quiet" ]] || [[ "$1" == "--quiet" ]] || [[ "$1" == "-Q" ]] || [[ "$1" == "--Q" ]] || [[ "$1" == "-Quiet" ]] || [[ "$1" == "--Quiet" ]]; then
     package_with_full_path="`readlink -f "$2"`"
-    working_directory="`basename "$2" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb//'`-working-directory"
+    working_directory="`basename "$2" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb$//'`-working-directory"
 else
     package_with_full_path="`readlink -f "$1"`"
-    working_directory="`basename "$1" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb//'`-working-directory"
+    working_directory="`basename "$1" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb$//'`-working-directory"
 fi
 mkdir "$working_directory"
 cd "$working_directory"
@@ -111,7 +111,7 @@ if [ -e lib ]; then
     mkdir usr 2> /dev/null; cp -a lib usr; rm -rf lib
 fi
 if [ -e lib32 ]; then
-    if [ $(grep Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
+    if [ $(grep ^Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
 	mkdir -p usr/lib 2> /dev/null; cp -a lib32/* usr/lib; rm -rf lib32
     else
 	mkdir usr 2> /dev/null; cp -a lib32 usr; rm -rf lib32
@@ -120,7 +120,7 @@ fi
 if [ -e lib64 ]; then
     mkdir -p usr/lib 2> /dev/null; cp -a lib64/* usr/lib; rm -rf lib64
 fi
-if [ -e usr/lib32 ] && [ $(grep Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
+if [ -e usr/lib32 ] && [ $(grep ^Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
     mkdir usr/lib 2> /dev/null; cp -a usr/lib32/* usr/lib; rm -rf usr/lib32
 fi
 if [ -e usr/lib64 ]; then
@@ -138,7 +138,7 @@ fi
 if [ -e usr/local/games ]; then
     mkdir usr/bin 2> /dev/null; cp -a usr/local/games/* usr/bin; rm -rf usr/local/games
 fi
-if [ -e usr/local/lib32 ] && [ $(grep Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
+if [ -e usr/local/lib32 ] && [ $(grep ^Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
     mkdir usr/lib 2> /dev/null; cp -a usr/local/lib32/* usr/lib; rm -rf usr/local/lib32
 fi
 if [ -e usr/local/lib64 ]; then
@@ -162,19 +162,19 @@ echo -e "${lightgreen}==>${NC} ${bold}Generating .PKGINFO file...${normal}"
 # Generating pkgname field
 for i in {git,bzr,darcs,hg}; do
     if [ $(grep ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) -eq 0 ]; then
-	echo "pkgname = `grep Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i/-$i/" > .PKGINFO
+	echo "pkgname = `grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i/-$i/" > .PKGINFO
     fi
 done
 if [ $(grep ^Version: control | gawk '{print $2}' | grep -q svn; echo $?) -eq 0 ]; then
-    echo "pkgname = `grep Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn/-svn/' > .PKGINFO
+    echo "pkgname = `grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn/-svn/' > .PKGINFO
 fi
 for i in {cvs,CVS}; do
     if [ $(grep ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) -eq 0 ]; then
-	echo "pkgname = `grep Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs/-cvs/' > .PKGINFO
+	echo "pkgname = `grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs/-cvs/' > .PKGINFO
     fi
 done
 if [ $(grep ^Version: control | gawk '{print $2}' | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) -ne 0 ]; then
-    echo "pkgname = `grep Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`" | sed s'/demo/-demo/' | sed s'/trial/-trial/' | sed s'/--/-/' | sed 's/^-\(.*\)/\1/' > .PKGINFO
+    echo "pkgname = `grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`" | sed s'/demo/-demo/' | sed s'/trial/-trial/' | sed s'/--/-/' | sed 's/^-\(.*\)/\1/' > .PKGINFO
 fi
 
 # Generating pkgver field
@@ -202,15 +202,15 @@ if [ $(echo $version | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) -n
 fi
 
 # Generating pkgdesc field
-if [ $(echo `grep -v ":\| \." control` | grep -iq "`grep Description: control | sed s'/Description: //' | sed s'/\.//'`"; echo $?) -eq 0 ]; then
+if [ $(echo `grep -v ":\| \." control` | grep -iq "`grep ^Description: control | sed s'/^Description: //' | sed s'/\.//'`"; echo $?) -eq 0 ]; then
     description=$(echo $(echo "`grep -v ":\| \." control`") | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
 else
-    description=$(echo $(echo "`grep Description: control | sed s'/Description: //' | sed 's/.*/\u&/'`" | sed s'/\.//'). `grep -v ":\| \." control` | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
+    description=$(echo $(echo "`grep ^Description: control | sed s'/^Description: //' | sed 's/.*/\u&/'`" | sed s'/\.//'). `grep -v ":\| \." control` | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
 fi
 echo "pkgdesc = $description" >> .PKGINFO
 
 # Generating url field
-echo "url = `grep Homepage: control | gawk '{print $2}'`" | sed s'/\/$//' >> .PKGINFO
+echo "url = `grep ^Homepage: control | gawk '{print $2}'`" | sed s'/\/$//' >> .PKGINFO
 
 # Generating builddate (which is actually packaging date) field
 echo "builddate = `date -u "+%s"`" >> .PKGINFO
@@ -225,7 +225,7 @@ else
 fi
 
 # Generating arch field
-echo "arch = `grep Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/all/any/'`" >> .PKGINFO
+echo "arch = `grep ^Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/all/any/'`" >> .PKGINFO
 
 # Generating size field
 if [ -e preinst ]; then
@@ -264,9 +264,15 @@ else
     for i in `echo "$package_license" | sed -e s'/ /__/g' -e s'/,/ /g'`; do
 	license+=($i)
     done
-    for (( i=0; i<$(echo ${#license[@]}); i=i+1 )); do license[$i]=$(echo ${license[$i]} | sed s'/__/ /g'); done
-    printf '%s\n' "${license[@]}" | while read line; do echo "license = $line" >> .PKGINFO ; done
+    for (( i=0; i<$(echo ${#license[@]}); i=i+1 )); do
+        license[$i]=$(echo ${license[$i]} | sed s'/__/ /g')
+    done
+    printf '%s\n' "${license[@]}" | while read line; do
+        echo "license = $line" >> .PKGINFO
+    done
 fi
+
+echo -e "\n${lightgreen}*${NC} ${bold}Creation of .PKGINFO file in progress. It may take a few minutes, please wait...${normal}"
 
 # The packages names translator function
 packages-names-translator() {
@@ -322,7 +328,7 @@ for i in $(eval echo {1..$(cat `ls | grep initial-check-list` | wc -l)}); do
     if [[ $(sed -n ""$i"{p;q;}" final-check-list | gawk '{print $1}') == "" ]]; then
 	echo $(sed -n ""$i"{p;q;}" `ls | grep initial-check-list`) >> untranslated
 	echo $(sed -n ""$i"{p;q;}" `ls | grep initial-check-list` | gawk '{print $1}') >> untranslated-names-only
-    elif [[ $(echo " $(echo $(grep pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//'){-svn,-git,-cvs,-bzr,-darcs,-hg,}) " | grep -q " $(sed -n ""$i"{p;q;}" final-check-list | gawk '{print $1}') "; echo $?) == 0 ]]; then
+    elif [[ $(echo " $(echo $(grep ^pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//'){-svn,-git,-cvs,-bzr,-darcs,-hg,}) " | grep -q " $(sed -n ""$i"{p;q;}" final-check-list | gawk '{print $1}') "; echo $?) == 0 ]]; then
 	echo $(sed -n ""$i"{p;q;}" `ls | grep initial-check-list` | sed s'/ //') >> missing-files
     fi
 done
@@ -380,7 +386,7 @@ if [ -e untranslated-names-only ]; then
 	if [[ $(tac final-check-list | sed -n ""$i"{p;q;}" | gawk '{print $1}') == "" ]]; then
 	    echo $(tac untranslated | sed -n ""$i"{p;q;}") >> new-untranslated
 	    echo $(tac untranslated | sed -n ""$i"{p;q;}" | gawk '{print $1}') >> new-untranslated-names-only
-	elif [[ $(echo " $(echo $(grep pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//'){-svn,-git,-cvs,-bzr,-darcs,-hg,}) " | grep -q " $(tac final-check-list | sed -n ""$i"{p;q;}" | gawk '{print $1}') "; echo $?) == 0 ]]; then
+	elif [[ $(echo " $(echo $(grep ^pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//'){-svn,-git,-cvs,-bzr,-darcs,-hg,}) " | grep -q " $(tac final-check-list | sed -n ""$i"{p;q;}" | gawk '{print $1}') "; echo $?) == 0 ]]; then
 	    echo $(tac untranslated | sed -n ""$i"{p;q;}" | sed s'/ //') >> missing-files
 	fi
     done
@@ -3219,7 +3225,7 @@ if [ -e new-untranslated-names-only ]; then
 	    done
 	fi
 
-	if [ -e tempfile ] && [ $(grep pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' | grep -q "^$(head -1 tempfile)$"; echo $?) != 0 ]; then
+	if [ -e tempfile ] && [ $(grep ^pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' | grep -q "^$(head -1 tempfile)$"; echo $?) != 0 ]; then
 	    for t in {svn,git,cvs,bzr,darcs,hg}; do
 		if [ $(echo "$i" | grep -q "\-$t$"; echo $?) -eq 0 ]; then
 		    grep "^$i$\|^$i " new-untranslated | sed s"/^$i/$(head -1 tempfile))-$t/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
@@ -3254,7 +3260,21 @@ fi
 if [ -e dependencies-initial-check-list ]; then
     grep -q qt final-check-list && echo hicolor-icon-theme >> final-check-list
     grep -q gtk final-check-list && echo -e "hicolor-icon-theme\ndesktop-file-utils" >> final-check-list
-    grep -q Python-Version: control && echo python`grep Python-Version: control | gawk '{print $2}' | sed s'/\.//g'` >> final-check-list
+    grep -q ^Python-Version: control && echo python`grep ^Python-Version: control | gawk '{print $2}' | sed s'/\.//g'` >> final-check-list
+fi
+
+# Special rules for optional dependencies
+if [ -e optional-dependencies-untranslated-names-only ]; then
+    if [ -e dependencies-untranslated-names-only ]; then
+        for i in `cat optional-dependencies-untranslated-names-only`; do
+            if [ $(grep -q "^$i$" dependencies-untranslated-names-only; echo $?) -ne 0 ]; then
+                echo "$i" >> optional-dependencies-untranslated-names-only-1
+            fi
+        done
+        rm -rf optional-dependencies-untranslated-names-only
+    else
+        mv optional-dependencies-untranslated-names-only optional-dependencies-untranslated-names-only-1
+    fi
 fi
 
 # Appending ready translated names (if any needed) to the translated packages names list
@@ -3304,7 +3324,7 @@ gawk '{print $1}' tempfile15 | sort -u > tempfile16
 
 # Removing packages names that are the same with the name of the package to be converted from translated packages list (if any exist)
 for i in `cat tempfile16`; do
-    if [ $(echo " $(echo $(grep pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//'){-svn,-git,-cvs,-bzr,-darcs,-hg,}) " | grep -q " $i "; echo $?) != 0 ]; then
+    if [ $(echo " $(echo $(grep ^pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//'){-svn,-git,-cvs,-bzr,-darcs,-hg,}) " | grep -q " $i "; echo $?) != 0 ]; then
 	grep "^$i$\|^$i " tempfile15 >> $i-tempfile17
     fi
 done
@@ -3349,8 +3369,8 @@ done
 }
 
 # Generating replacements fields
-if [ $(grep -q Replaces: control; echo $?) -eq 0 ]; then
-    grep Replaces: control | sed -e s'/Replaces: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
+if [ $(grep -q ^Replaces: control; echo $?) -eq 0 ]; then
+    grep ^Replaces: control | sed -e s'/^Replaces: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
@@ -3363,8 +3383,8 @@ if [ $(grep -q Replaces: control; echo $?) -eq 0 ]; then
 fi
 
 # Generating conflicts fields
-if [ $(grep -q Conflicts: control; echo $?) -eq 0 ]; then
-    grep Conflicts: control | sed -e s'/Conflicts: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
+if [ $(grep -q ^Conflicts: control; echo $?) -eq 0 ]; then
+    grep ^Conflicts: control | sed -e s'/^Conflicts: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
@@ -3377,8 +3397,8 @@ if [ $(grep -q Conflicts: control; echo $?) -eq 0 ]; then
 fi
 
 # Generating provisions fields
-if [ $(grep -q Provides: control; echo $?) -eq 0 ]; then
-    grep Provides: control | sed -e s'/Provides: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
+if [ $(grep -q ^Provides: control; echo $?) -eq 0 ]; then
+    grep ^Provides: control | sed -e s'/^Provides: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
@@ -3393,7 +3413,7 @@ fi
 # Generating backups fields
 if [ -e conffiles ]; then
     sed s'/^\///g' conffiles > tempfile
-    if [ $(grep Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
+    if [ $(grep ^Architecture: control | grep -q i386; echo $?) -eq 0 ]; then
 	sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib\//g' -e s'/^lib32\//usr\/lib\//g' -e s'/^usr\/lib32\//usr\/lib\//g' -e s'/^usr\/local\/sbin\//usr\/bin\//g' -e s'/^usr\/local\/games\//usr\/bin\//g' -e s'/^usr\/local\/lib32\//usr\/lib\//g' -e s'/^usr\/local\//usr\//g' tempfile
     else
 	sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib\//g' -e s'/^lib32\//usr\/lib32\//g' -e s'/^lib64\//usr\/lib\//g' -e s'/^usr\/lib64\//usr\/lib\//g' -e s'/^usr\/local\/sbin\//usr\/bin\//g' -e s'/^usr\/local\/games\//usr\/bin\//g' -e s'/^usr\/local\/lib64\//usr\/lib\//g' -e s'/^usr\/local\//usr\//g' tempfile
@@ -3403,8 +3423,8 @@ if [ -e conffiles ]; then
 fi
 
 # Generating non optional dependencies fields
-if [ $(grep -q Depends: control; echo $?) -eq 0 ]; then
-    grep Depends: control | sed -e s'/Pre-Depends: //' -e s'/Depends: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
+if [ $(grep -q '^Depends:\|^Pre-Depends:' control; echo $?) -eq 0 ]; then
+    grep '^Depends:\|^Pre-Depends:' | sed -e s'/^Depends: \|^Pre-Depends: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
@@ -3417,8 +3437,8 @@ if [ $(grep -q Depends: control; echo $?) -eq 0 ]; then
 fi
 
 # Generating optional dependencies fields
-if [ $(grep -q 'Recommends:\|Suggests:' control; echo $?) -eq 0 ]; then
-    grep 'Recommends:\|Suggests:' control | sed -e s'/Recommends: \|Suggests: //' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
+if [ $(grep -q '^Recommends:\|^Suggests:' control; echo $?) -eq 0 ]; then
+    grep '^Recommends:\|^Suggests:' control | sed -e s'/^Recommends: \|^Suggests: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
@@ -3453,16 +3473,16 @@ if [ -e /tmp/debtap-tmp/dependencies-missing-files ]; then
     fi
     echo `cat /tmp/debtap-tmp/dependencies-missing-files` | sed s'/ /, /g'
 fi
-if [ -e /tmp/debtap-tmp/optional-dependencies-untranslated-names-only ]; then
+if [ -e /tmp/debtap-tmp/optional-dependencies-untranslated-names-only-1 ]; then
     if [ -e /tmp/debtap-tmp/dependencies-untranslated-names-only ] || [ -e /tmp/debtap-tmp/dependencies-missing-files ]; then
 	echo -e "${lightred}Warning: These optional dependencies (optdepend =   fields) could not be translated into Arch Linux packages names:${NC}"
     else
 	echo -e "\n${lightred}Warning: These optional dependencies (optdepend =   fields) could not be translated into Arch Linux packages names:${NC}"
     fi
-    echo `cat /tmp/debtap-tmp/optional-dependencies-untranslated-names-only` | sed s'/ /, /g'
+    echo `cat /tmp/debtap-tmp/optional-dependencies-untranslated-names-only-1` | sed s'/ /, /g'
 fi
 if [ -e /tmp/debtap-tmp/replacements-untranslated-names-only ]; then
-    if [ -e /tmp/debtap-tmp/dependencies-untranslated-names-only ] || [ -e /tmp/debtap-tmp/dependencies-missing-files ] || [ -e /tmp/debtap-tmp/optional-dependencies-untranslated-names-only ]; then
+    if [ -e /tmp/debtap-tmp/dependencies-untranslated-names-only ] || [ -e /tmp/debtap-tmp/dependencies-missing-files ] || [ -e /tmp/debtap-tmp/optional-dependencies-untranslated-names-only-1 ]; then
 	echo -e "${lightred}Warning: These replacements (replaces =   fields) could not be translated into Arch Linux packages names:${NC}"
     else
 	echo -e "\n${lightred}Warning: These replacements (replaces =   fields) could not be translated into Arch Linux packages names:${NC}"
@@ -3470,7 +3490,7 @@ if [ -e /tmp/debtap-tmp/replacements-untranslated-names-only ]; then
     echo `cat /tmp/debtap-tmp/replacements-untranslated-names-only` | sed s'/ /, /g'
 fi
 if [ -e /tmp/debtap-tmp/conflicts-untranslated-names-only ]; then
-    if [ -e /tmp/debtap-tmp/dependencies-untranslated-names-only ] || [ -e /tmp/debtap-tmp/dependencies-missing-files ] || [ -e /tmp/debtap-tmp/optional-dependencies-untranslated-names-only ] || [ -e /tmp/debtap-tmp/replacements-untranslated-names-only ]; then
+    if [ -e /tmp/debtap-tmp/dependencies-untranslated-names-only ] || [ -e /tmp/debtap-tmp/dependencies-missing-files ] || [ -e /tmp/debtap-tmp/optional-dependencies-untranslated-names-only-1 ] || [ -e /tmp/debtap-tmp/replacements-untranslated-names-only ]; then
 	echo -e "${lightred}Warning: These conflicts (conflict =   fields) could not be translated into Arch Linux packages names:${NC}"
     else
 	echo -e "\n${lightred}Warning: These conflicts (conflict =   fields) could not be translated into Arch Linux packages names:${NC}"
@@ -3478,7 +3498,7 @@ if [ -e /tmp/debtap-tmp/conflicts-untranslated-names-only ]; then
     echo `cat /tmp/debtap-tmp/conflicts-untranslated-names-only` | sed s'/ /, /g'
 fi
 if [ -e /tmp/debtap-tmp/provisions-untranslated-names-only ]; then
-    if [ -e /tmp/debtap-tmp/dependencies-untranslated-names-only ] || [ -e /tmp/debtap-tmp/dependencies-missing-files ] || [ -e /tmp/debtap-tmp/optional-dependencies-untranslated-names-only ] || [ -e /tmp/debtap-tmp/replacements-untranslated-names-only ] || [ -e /tmp/debtap-tmp/conflicts-untranslated-names-only ]; then
+    if [ -e /tmp/debtap-tmp/dependencies-untranslated-names-only ] || [ -e /tmp/debtap-tmp/dependencies-missing-files ] || [ -e /tmp/debtap-tmp/optional-dependencies-untranslated-names-only-1 ] || [ -e /tmp/debtap-tmp/replacements-untranslated-names-only ] || [ -e /tmp/debtap-tmp/conflicts-untranslated-names-only ]; then
 	echo -e "${lightred}Warning: These provisions (provides =   fields) could not be translated into Arch Linux packages names:${NC}"
     else
 	echo -e "\n${lightred}Warning: These provisions (provides =   fields) could not be translated into Arch Linux packages names:${NC}"
@@ -3574,7 +3594,7 @@ if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
 	sed -i '1d' tempfile
     fi
 
-    if [ $(grep Architecture: control \| grep -q i386; echo $?) -eq 0 ]; then
+    if [ $(grep ^Architecture: control \| grep -q i386; echo $?) -eq 0 ]; then
 	sed -i -e s'/ \/bin\// \/usr\/bin\//g' -e s'/ \/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/games\// \/usr\/bin\//g' -e s'/ \/lib\// \/usr\/lib\//g' -e s'/ \/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/local\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/local\/games\// \/usr\/bin\//g' -e s'/ \/usr\/local\/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/local\// \/usr\//g' tempfile
 	sed -i -e s'/=\/bin\//=\/usr\/bin\//g' -e s'/=\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/games\//=\/usr\/bin\//g' -e s'/=\/lib\//=\/usr\/lib\//g' -e s'/=\/lib32\//=\/usr\/lib\//g' -e s'/=\/usr\/lib32\//=\/usr\/lib\//g' -e s'/=\/usr\/local\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/local\/games\//=\/usr\/bin\//g' -e s'/=\/usr\/local\/lib32\//=\/usr\/lib\//g' -e s'/=\/usr\/local\//=\/usr\//g' tempfile
 	sed -i -e s'/>\/bin\//>\/usr\/bin\//g' -e s'/>\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/games\//>\/usr\/bin\//g' -e s'/>\/lib\//>\/usr\/lib\//g' -e s'/>\/lib32\//>\/usr\/lib\//g' -e s'/>\/usr\/lib32\//>\/usr\/lib\//g' -e s'/>\/usr\/local\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/local\/games\//>\/usr\/bin\//g' -e s'/>\/usr\/local\/lib32\//>\/usr\/lib\//g' -e s'/>\/usr\/local\//>\/usr\//g' tempfile
