@@ -272,7 +272,7 @@ else
     done
 fi
 
-echo -e "\n${lightgreen}*${NC} ${bold}Creation of .PKGINFO file in progress. It may take a few minutes, please wait...${normal}"
+echo -e "\n${lightgreen}***${NC} ${bold}Creation of .PKGINFO file in progress. It may take a few minutes, please wait...${normal}"
 
 # The packages names translator function
 packages-names-translator() {
@@ -3423,8 +3423,9 @@ if [ -e conffiles ]; then
 fi
 
 # Generating non optional dependencies fields
+
 if [ $(grep -q '^Depends:\|^Pre-Depends:' control; echo $?) -eq 0 ]; then
-    grep '^Depends:\|^Pre-Depends:' | sed -e s'/^Depends: \|^Pre-Depends: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
+    grep '^Depends:\|^Pre-Depends:' control | sed -e s'/^Depends: \|^Pre-Depends: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
 	    echo $word >> tempfile01
 	done
