@@ -3423,7 +3423,6 @@ if [ -e conffiles ]; then
 fi
 
 # Generating non optional dependencies fields
-
 if [ $(grep -q '^Depends:\|^Pre-Depends:' control; echo $?) -eq 0 ]; then
     grep '^Depends:\|^Pre-Depends:' control | sed -e s'/^Depends: \|^Pre-Depends: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/|/ /g' | tr -d "," | while read line; do
 	for word in $line; do
