@@ -344,7 +344,7 @@ if [ -e untranslated-names-only ]; then
     for i in `ls | grep tempfile08`; do
 	for j in `gawk '{print $1}' $i`; do
 	    for k in `pkgfile $j | gawk -F '/' '{print $2}'`; do
-		echo $k`head -1 $i | gawk '{print $2$3}'
+		echo $k`head -1 $i | gawk '{print $2$3}'`
 	    done
 	done >> `echo $i | sed s'/tempfile08/tempfile09/'`
     done
@@ -3660,7 +3660,7 @@ bsdtar -czf .MTREE --format=mtree --options='!all,use-set,type,uid,gid,mode,time
 echo -e "\n${lightgreen}==>${NC} ${bold}Creating final package...${normal}"
 fakeroot << EOF
 tar --force-local -pcf `grep '^pkgname' .PKGINFO | gawk '{print $3}'`-`grep '^pkgver' .PKGINFO | gawk '{print $3}'`-`grep '^arch' .PKGINFO | gawk '{print $3}'`.pkg.tar * .PKGINFO .INSTALL .MTREE 2> /dev/null
-xz -T 0 -z -9 *.tar
+xz --threads=0 -z -9 *.tar
 EOF
 mv *.xz "$(dirname "$package_with_full_path")"
 cd ..
