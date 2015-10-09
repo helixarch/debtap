@@ -3278,14 +3278,14 @@ if [ -e optional-dependencies-untranslated-names-only ]; then
 fi
 
 # Appending ready translated names (if any needed) to the translated packages names list
-grep -q "^xlibs$\|^xlibs =\|^xlibs >\|^xlibs <" tempfile02 && echo libx11 >> final-check-list
-grep -q "^libgl1$\|^libgl1 =\|^libgl1 >\|^libgl1 <" tempfile02 && echo libgl >> final-check-list
-grep -q "^libglu1$\|^libglu1 =\|^libglu1 >\|^libglu1 <" tempfile02 && echo glu >> final-check-list
-grep -q "^default-jre$\|^default-jre =\|^default-jre >\|^default-jre <" tempfile02 && echo java-runtime >> final-check-list
-grep -q "^python:any$\|^python:any =\|^python:any >\|^python:any <" tempfile02 && echo python >> final-check-list
-grep "^libpango$\|^libpango =\|^libpango >\|^libpango <" tempfile02 | sed s"/`grep "^libpango$\|^libpango =\|^libpango >\|^libpango <" tempfile02 | gawk '{print $1}' | head -1`/pango/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' | sed s'/-multilib$\|^lib32-//g' >> final-check-list
-grep "^libpangomm$\|^libpangomm =\|^libpangomm >\|^libpangomm <" tempfile02 | sed s"/`grep "^libpangomm$\|^libpangomm =\|^libpangomm >\|^libpangomm <" tempfile02 | gawk '{print $1}' | head -1`/pangomm/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' | sed s'/-multilib$\|^lib32-//g' >> final-check-list
-grep -q "^fonts-freefont-ttf$\|^fonts-freefont-ttf =\|^fonts-freefont-ttf >\|^fonts-freefont-ttf <" tempfile02 && echo ttf-freefont >> final-check-list
+grep -q "^xlibs$\|^xlibs " tempfile02 && echo libx11 >> final-check-list
+grep -q "^libgl1$\|^libgl1 " tempfile02 && echo libgl >> final-check-list
+grep -q "^libglu1$\|^libglu1 " tempfile02 && echo glu >> final-check-list
+grep -q "^default-jre$\|^default-jre " tempfile02 && echo java-runtime >> final-check-list
+grep -q "^python:any$\|^python:any " tempfile02 && echo python >> final-check-list
+grep "^libpango$\|^libpango " tempfile02 | sed s"/`grep "^libpango$\|^libpango " tempfile02 | gawk '{print $1}' | head -1`/pango/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' | sed s'/-multilib$\|^lib32-//g' >> final-check-list
+grep "^libpangomm$\|^libpangomm " tempfile02 | sed s"/`grep "^libpangomm$\|^libpangomm " tempfile02 | gawk '{print $1}' | head -1`/pangomm/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' | sed s'/-multilib$\|^lib32-//g' >> final-check-list
+grep -q "^fonts-freefont-ttf$\|^fonts-freefont-ttf " tempfile02 && echo ttf-freefont >> final-check-list
 
 # Stripping unnecessary symbols and words from packages versions
 grep -v "^$" final-check-list | while read line; do
