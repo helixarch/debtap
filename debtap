@@ -3515,7 +3515,7 @@ if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
     IFS=$'\n'
     if [ -e preinst ] && [ -e postinst ]; then
 	echo "pre_install() {" > tempfile
-	grep -iv '#!\|automatically\|added\|generated' preinst | while read line; do
+	grep -iv '#!\|automatically\|added\|generated' preinst | while read -r line; do
 	    echo "    $line" | sed s'/        /    /g' >> tempfile
 	done
 	echo "}" >> tempfile
