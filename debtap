@@ -276,6 +276,24 @@ fi
 
 echo -e "\n${lightgreen}***${NC} ${bold}Creation of .PKGINFO file in progress. It may take a few minutes, please wait...${normal}"
 
+# Array search utility function
+indexOf() {
+    declare -a array=("${!2}")
+    #echo "${array[@]}"
+	
+	count=${#array[@]}
+	i=0
+	while [ "$i" -lt "$count" ]; do
+		if [[ "${array[$i]}" == "$1" ]]; then
+			echo "$i"
+			return 0
+		fi
+		let "i++"
+	done
+	echo "-1"
+		
+}
+
 # The packages names translator function
 packages-names-translator() {
 # First method of translating .deb packages names into Arch Linux packages names, more accurate, comparing contents of .deb packages with Arch Linux packages contents
@@ -3517,8 +3535,15 @@ if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
     IFS=$'\n'
     if [ -e preinst ] && [ -e postinst ]; then
 	echo "pre_install() {" > tempfile
+	hereDocTerminators=()
 	grep -iv '#!\|automatically\|added\|generated' preinst | while read -r line; do
-	    echo "    $line" | sed s'/        /    /g' >> tempfile
+		if [[ $line == *"<<"* ]]
+		then
+			  hereDocTerminators+=("${line#*<<}")
+		fi
+		index=$(indexOf $line hereDocTerminators[@])
+		[ "$index" -gt "-1" ]  && space='' || space='    '
+	    echo "$space$line" | sed s'/        /    /g' >> tempfile
 	done
 	echo "}" >> tempfile
 	echo -e "\npost_install() {" >> tempfile
@@ -3527,8 +3552,15 @@ if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
 	elif [ $(grep '^depend' .PKGINFO | grep -q gtk; echo $?) -eq 0 ]; then
 	    echo '    gtk-update-icon-cache -q -t -f usr/share/icons/hicolor' >> tempfile
 	fi
+	hereDocTerminators=()
 	grep -iv '#!\|automatically\|added\|generated' postinst | while read -r line; do
-	    echo "    $line" | sed s'/        /    /g' >> tempfile
+		if [[ $line == *"<<"* ]]
+		then
+			  hereDocTerminators+=("${line#*<<}")
+		fi
+		index=$(indexOf $line hereDocTerminators[@])
+		[ "$index" -gt "-1" ]  && space='' || space='    '
+	    echo "$space$line" | sed s'/        /    /g' >> tempfile
 	done
 	if [ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) -eq 0 ]; then
 	    echo '    update-desktop-database -q' >> tempfile
@@ -3542,8 +3574,15 @@ if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
 	echo "}" >> tempfile
     elif [ -e preinst ] && [ ! -e postinst ]; then
 	echo "pre_install() {" > tempfile
+	hereDocTerminators=()
 	grep -iv '#!\|automatically\|added\|generated' preinst | while read -r line; do
-	    echo "    $line" | sed s'/        /    /g' >> tempfile
+		if [[ $line == *"<<"* ]]
+		then
+			  hereDocTerminators+=("${line#*<<}")
+		fi
+		index=$(indexOf $line hereDocTerminators[@])
+		[ "$index" -gt "-1" ]  && space='' || space='    '
+	    echo "$space$line" | sed s'/        /    /g' >> tempfile
 	done
 	echo "}" >> tempfile
 	echo -e "\npre_upgrade() {" >> tempfile
@@ -3556,8 +3595,15 @@ if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
 	elif [ $(grep '^depend' .PKGINFO | grep -q gtk; echo $?) -eq 0 ]; then
 	    echo '    gtk-update-icon-cache -q -t -f usr/share/icons/hicolor' >> tempfile
 	fi
+	hereDocTerminators=()
 	grep -iv '#!\|automatically\|added\|generated' postinst | while read -r line; do
-	    echo "    $line" | sed s'/        /    /g' >> tempfile
+		if [[ $line == *"<<"* ]]
+		then
+			  hereDocTerminators+=("${line#*<<}")
+		fi
+		index=$(indexOf $line hereDocTerminators[@])
+		[ "$index" -gt "-1" ]  && space='' || space='    '
+	    echo "$space$line" | sed s'/        /    /g' >> tempfile
 	done
 	if [ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) -eq 0 ]; then
 	    echo '    update-desktop-database -q' >> tempfile
@@ -3570,8 +3616,15 @@ if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
 
     if [ -e prerm ]; then
 	echo -e "\npre_remove() {" >> tempfile
+	hereDocTerminators=()
 	grep -iv '#!\|automatically\|added\|generated' prerm | while read -r line; do
-	    echo "    $line" | sed s'/        /    /g' >> tempfile
+	    if [[ $line == *"<<"* ]]
+		then
+			  hereDocTerminators+=("${line#*<<}")
+		fi
+		index=$(indexOf $line hereDocTerminators[@])
+		[ "$index" -gt "-1" ]  && space='' || space='    '
+		echo "$space$line" | sed s'/        /    /g' >> tempfile
 	done
 	echo "}" >> tempfile
     fi
@@ -3583,8 +3636,15 @@ if [ -e preinst ] || [ -e postinst ] || [ -e prerm ] || [ -e postrm ]; then
 	elif [ $(grep '^depend' .PKGINFO | grep -q gtk; echo $?) -eq 0 ]; then
 	    echo '    gtk-update-icon-cache -q -t -f usr/share/icons/hicolor' >> tempfile
 	fi
+	hereDocTerminators=()
 	grep -iv '#!\|automatically\|added\|generated' postrm | while read -r line; do
-	    echo "    $line" | sed s'/        /    /g' >> tempfile
+	    if [[ $line == *"<<"* ]]
+		then
+			  hereDocTerminators+=("${line#*<<}")
+		fi
+		index=$(indexOf $line hereDocTerminators[@])
+		[ "$index" -gt "-1" ]  && space='' || space='    '
+		echo "$space$line" | sed s'/        /    /g' >> tempfile
 	done
 	if [ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) -eq 0 ]; then
 	    echo '    update-desktop-database -q' >> tempfile
