@@ -39,11 +39,23 @@ elif [[ "$1" == "-u" ]] || [[ "$1" = "--u" ]] || [[ "$1" == "-update" ]] || [[ "
                     _arch=i386
                 elif [[ "$(uname -m)" == "x86_64" ]]; then
                     _arch=amd64
+                elif [[ "$(uname -m)" == "armv7l" ]]; then
+                    _arch=armhf
+                else
+                    echo -n "Unknown architecture: "; uname -m
+                    exit 1
                 fi
                 ubuntu_latest_development_version=`curl -s http://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 2'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g'`
                 curl -C - -f http://ftp.debian.org/debian/dists/sid/Contents-$_arch.gz > /var/cache/debtap/debian-packages-files.gz
                 gzip -df /var/cache/debtap/debian-packages-files.gz
-                curl -C - -f http://archive.ubuntu.com/ubuntu/dists/$ubuntu_latest_development_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
+                case "$_arch" in
+                    i386|amd64)
+                    curl -C - -f http://archive.ubuntu.com/ubuntu/dists/$ubuntu_latest_development_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
+                    ;;
+                    armhf)
+                    curl -C - -f http://ports.ubuntu.com/ubuntu-ports/dists/$ubuntu_latest_development_version/main/binary-$_arch/Packages.gz > /var/cache/debtap/ubuntu-packages-files.gz
+                    ;;
+                esac
                 gzip -df /var/cache/debtap/ubuntu-packages-files.gz
                 if [[ $(echo $?) != 0 ]]; then
                     echo -e "${red}Synchronization failed. Exiting...${NC}"; exit 1
