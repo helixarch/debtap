@@ -40,7 +40,7 @@ elif [[ "$1" == "-u" ]] || [[ "$1" = "--u" ]] || [[ "$1" == "-update" ]] || [[ "
                 elif [[ "$(uname -m)" == "x86_64" ]]; then
                     _arch=amd64
                 fi
-                ubuntu_latest_stable_version=`curl -s http://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 3'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g'`
+                ubuntu_latest_stable_version=`curl -s https://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 3'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g'`
                 curl -C - -f http://ftp.debian.org/debian/dists/sid/main/Contents-$_arch.gz > /var/cache/debtap/debian-packages-files.gz
                 gzip -df /var/cache/debtap/debian-packages-files.gz
                 curl -C - -f http://archive.ubuntu.com/ubuntu/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
