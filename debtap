@@ -236,7 +236,7 @@ else
 fi
 
 # Generating arch field
-echo "arch = `grep ^Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/all/any/'`" >> .PKGINFO
+echo "arch = `grep ^Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/armhf/armv7h/' -e s'/all/any/'`" >> .PKGINFO
 
 # Generating size field
 if [ -e preinst ]; then
