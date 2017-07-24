@@ -15,11 +15,11 @@ A script for converting .deb packages into Arch Linux packages, focused on accur
 
 **Q: So debtap will help me only in case I need to convert specific .deb packages to Arch Linux packages?**
 
-**A:** No. In case you need to write a new PKGBUILD for a package that already exists in the Debian/Ubuntu distributions, by converting its .deb package to Arch package with debtap, thanks to the packages names translator function inside the script, it can help you determine which dependencies are needed for the package you write the PKGBUILD for and complete the necessary fields.
+**A:** No. In case you need to write a new PKGBUILD for a package that already exists in the Debian/Ubuntu distributions, using parameter -p or -P it can generate a PKGBUILD and then edit it as you wish.
 
 **Q: What are the minimum requirements to run this script?**
 
-**A:** You need to have installed these dependencies: `bash`, `binutils` (provides ar utility for extracting .deb package), `pkgfile` and `fakeroot`.You must run at least once (preferably recently) `debtap -u` to create/update pkgfile and debtap database (you do this with root privileges).
+**A:** You need to have installed these dependencies: `bash`, `binutils` (provides ar utility for extracting .deb package and readelf), `pkgfile` and `fakeroot`.You must run at least once (preferably recently) `debtap -u` to create/update pkgfile and debtap database (you do this with root privileges).
 
 **Q: Debtap needs a lot of time to convert a package. So, why this is happening?**
 
@@ -31,7 +31,19 @@ A script for converting .deb packages into Arch Linux packages, focused on accur
 
 **Q: How do I use debtap?**
 
-**A:** The syntax is quite simple actually: `debtap [option] package_filename`
+**A:** The syntax is quite simple actually: `debtap [options] package_filename`
 For example: `debtap world-of-goo-demo_1.0_i386.deb`
 
 Any recommendations or questions for debtap are welcomed!
+
+Available options:
+==================
+
+    `-h`  `--h`  `-help`      `--help`        **Prints help**
+    `-u`  `--u`  `-update`    `--update`      **Update debtap database**
+    `-q`  `--q`  `-quiet`     `--quiet`       **Bypass all questions, except for editing metadata file(s)**
+    `-Q`  `--Q`  `-Quiet`     `--Quiet`       **Bypass all questions (not recommended)**
+    `-s`  `--s`  `-pseudo`    `--pseudo`      **Create a pseudo-64-bit package from a 32-bit .deb package**
+    `-w`  `--w`  `-wipeout`   `--wipeout`     **Wipeout versions from all dependencies, conflicts etc.**
+    `-p`  `--p`  `-pkgbuild`  `--pkgbuild`    **Additionally generate a PKGBUILD file**
+    `-P`  `--P`  `-Pkgbuild`  `--Pkgbuild`    **Generate a PKGBUILD file only**
