@@ -39,11 +39,11 @@ Any recommendations or questions for debtap are welcomed!
 Available options:
 ==================
 
-    `-h`  `--h`  `-help`      `--help`        **Prints help**
-    `-u`  `--u`  `-update`    `--update`      **Update debtap database**
-    `-q`  `--q`  `-quiet`     `--quiet`       **Bypass all questions, except for editing metadata file(s)**
-    `-Q`  `--Q`  `-Quiet`     `--Quiet`       **Bypass all questions (not recommended)**
-    `-s`  `--s`  `-pseudo`    `--pseudo`      **Create a pseudo-64-bit package from a 32-bit .deb package**
-    `-w`  `--w`  `-wipeout`   `--wipeout`     **Wipeout versions from all dependencies, conflicts etc.**
-    `-p`  `--p`  `-pkgbuild`  `--pkgbuild`    **Additionally generate a PKGBUILD file**
-    `-P`  `--P`  `-Pkgbuild`  `--Pkgbuild`    **Generate a PKGBUILD file only**
+    -h  --h  -help      --help        Prints this help message
+    -u  --u  -update    --update      Update debtap database
+    -q  --q  -quiet     --quiet       Bypass all questions, except for editing metadata file(s)
+    -Q  --Q  -Quiet     --Quiet       Bypass all questions (not recommended)
+    -s  --s  -pseudo    --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package
+    -w  --w  -wipeout   --wipeout     Wipeout versions from all dependencies, conflicts etc.
+    -p  --p  -pkgbuild  --pkgbuild    Additionally generate a PKGBUILD file
+    -P  --P  -Pkgbuild  --Pkgbuild    Generate a PKGBUILD file only
