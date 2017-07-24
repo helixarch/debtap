@@ -39,7 +39,7 @@ Any recommendations or questions for debtap are welcomed!
 Available options:
 ==================
 
-    -h  --h  -help      --help        Prints this help message
+    -h  --h  -help      --help        Prints help
     -u  --u  -update    --update      Update debtap database
     -q  --q  -quiet     --quiet       Bypass all questions, except for editing metadata file(s)
     -Q  --Q  -Quiet     --Quiet       Bypass all questions (not recommended)
