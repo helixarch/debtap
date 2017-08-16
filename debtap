@@ -78,9 +78,17 @@ elif [[ $update == set ]]; then
                 _arch=arm64
             fi
             ubuntu_latest_stable_version=`curl -s https://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 3'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g'`
-            curl -C - -f http://ftp.debian.org/debian/dists/sid/main/Contents-$_arch.gz > /var/cache/debtap/debian-packages-files.gz
-            gzip -df /var/cache/debtap/debian-packages-files.gz
-            curl -C - -f http://archive.ubuntu.com/ubuntu/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
+            curl -C - -f http://ftp.debian.org/debian/dists/sid/main/Contents-$_arch.gz > /var/cache/debtap/debian-main-packages-files.gz
+            gzip -df /var/cache/debtap/debian-main-packages-files.gz
+            curl -C - -f http://ftp.debian.org/debian/dists/sid/non-free/Contents-$_arch.gz > /var/cache/debtap/debian-non-free-packages-files.gz
+            gzip -df /var/cache/debtap/debian-non-free-packages-files.gz
+            curl -C - -f http://ftp.debian.org/debian/dists/sid/contrib/Contents-$_arch.gz > /var/cache/debtap/debian-contrib-packages-files.gz
+            gzip -df /var/cache/debtap/debian-contrib-packages-files.gz
+            if [[ $_arch == i386 ]] || [[ $_arch == amd64 ]]; then
+                curl -C - -f http://archive.ubuntu.com/ubuntu/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
+            else
+                curl -C - -f http://ports.ubuntu.com/ubuntu-ports/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
+            fi
             gzip -df /var/cache/debtap/ubuntu-packages-files.gz
             if [[ $(echo $?) != 0 ]]; then
                 echo -e "${red}Synchronization failed. Exiting...${NC}"; exit 1
@@ -99,8 +107,8 @@ elif [[ $update == set ]]; then
                     if [[ $(echo $?) != 0 ]]; then
                         echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
                     else    
-						echo -e "${lightgreen}==>${NC} ${bold}Generating base group packages list...${normal}"
-						pacman -Qqg base > /var/cache/debtap/base-packages
+                        echo -e "${lightgreen}==>${NC} ${bold}Generating base group packages list...${normal}"
+                        pacman -Qqg base > /var/cache/debtap/base-packages
                         chmod 644 /var/cache/debtap/*
                         echo -e "${lightgreen}==>${NC} ${bold}All steps successfully completed!${normal}"; exit 0
                     fi
@@ -545,15 +553,15 @@ echo -e "\n${lightgreen}***${NC} ${bold}Creation of .PKGINFO file in progress. I
 packages-names-translator() {
 # First method of translating .deb packages names into Arch Linux packages names, more accurate, comparing contents of .deb packages with Arch Linux packages contents
 for debian_package_name in $(gawk '{print $1}' `ls | grep initial-check-list`); do
-    for debian_package_file in `grep "\/$debian_package_name$" /var/cache/debtap/debian-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
+	for debian_package_file in `grep "\/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
 		echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " `ls | grep initial-check-list` | gawk '{print $2}')
-    done >> $debian_package_name-tempfile03
+	done >> $debian_package_name-tempfile03
 done
 
 for i in `ls | grep tempfile03`; do
     for j in `gawk '{print $1}' $i`; do
 		for k in `pkgfile -q $j`; do
-			echo $k`head -1 $i | gawk '{print $2$3}'`
+			echo $k`head -1 $i | gawk '{print $2$3}'`,
 		done
     done >> `echo $i | sed s'/tempfile03/tempfile04/'`
 done
@@ -603,7 +611,7 @@ done
 # Second method of translating remaining untranslated .deb packages names into Arch Linux packages names, same as first method, but searches in Ubuntu database for packages contents instead of Debian database
 if [[ -e untranslated-names-only ]]; then
     for ubuntu_package_name in $(sort -u untranslated-names-only); do
-        for ubuntu_package_file in `grep "\/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
+		for ubuntu_package_file in `grep "\/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
 			echo $ubuntu_package_file $(grep "^$ubuntu_package_name$\|^$ubuntu_package_name " untranslated | gawk '{print $2}')
 		done >> $ubuntu_package_name-tempfile08
     done
@@ -2744,6 +2752,7 @@ if [[ -e dependencies-initial-check-list ]]; then
 		pkgfile -q "$i" | head -1 >> tempfile15
 	done
 	# Removing packages names that are part of base group (if any exist)
+	touch tempfile15-1
 	sort -u tempfile15 | grep -v '^$' | while read line; do
 		if [[ $(grep -q "^$(echo "$line" | gawk '{print $1}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//')$" /var/cache/debtap/base-packages; echo $?) != 0 ]]; then
 			echo "$line" >> tempfile15-1
@@ -2759,6 +2768,7 @@ sort -u tempfile15 > tempfile16
 gawk '{print $1}' tempfile16 | sort -u > tempfile17
 
 # Removing packages names that are the same with the name of the package to be converted from translated packages list (if any exist)
+touch tempfile18
 for i in `cat tempfile17`; do
     if [[ $(echo " $(echo $(grep ^pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//'){-svn,-git,-cvs,-bzr,-darcs,-hg,}) " | grep -q " $(echo $i | sed s'/^lib32-\|-multilib$//') "; echo $?) != 0 ]]; then
 		echo "$i" >> tempfile18
@@ -2766,7 +2776,7 @@ for i in `cat tempfile17`; do
     fi
 done
 
-if [[ $wipeout != set ]]; then
+if [[ $wipeout != set ]] && [[ $(ls *-tempfile19 &> /dev/null; echo $?) == 0 ]]; then
 	# Isolating versions from packages
 	for i in `ls | grep tempfile19`; do
 		if [[ $(grep -q "=\|>\|<" $i; echo $?) != 0 ]]; then
@@ -2820,9 +2830,9 @@ if [[ $(grep -q ^Replaces: control; echo $?) == 0 ]]; then
 	if [[ $wipeout != set ]]; then
 		for i in `sort -u tempfile22`; do echo "replaces = $i" >> .PKGINFO; done
 	else
-	    for i in `sort -u tempfile18`; do echo "replaces = $i" >> .PKGINFO; done
+		for i in `sort -u tempfile18`; do echo "replaces = $i" >> .PKGINFO; done
 	fi
-    rm -rf *tempfile* replacements-initial-check-list final-check-list
+	rm -rf *tempfile* replacements-initial-check-list final-check-list
 fi
 
 # Generating conflicts fields
@@ -2838,9 +2848,9 @@ if [[ $(grep -q ^Conflicts: control; echo $?) == 0 ]]; then
 	if [[ $wipeout != set ]]; then
 		for i in `sort -u tempfile22`; do echo "conflict = $i" >> .PKGINFO; done
 	else
-	    for i in `sort -u tempfile18`; do echo "conflict = $i" >> .PKGINFO; done
+		for i in `sort -u tempfile18`; do echo "conflict = $i" >> .PKGINFO; done
 	fi
-    rm -rf *tempfile* conflicts-initial-check-list final-check-list
+	rm -rf *tempfile* conflicts-initial-check-list final-check-list
 fi
 
 # Generating provisions fields
@@ -2874,7 +2884,7 @@ if [[ -e conffiles ]]; then
 		sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib32\//g' -e s'/^lib32\//usr\/lib32\//g' -e s'/^usr\/lib\//usr\/lib32\//g' -e s'/^usr\/local\/sbin\//usr\/bin\//g' -e s'/^usr\/local\/games\//usr\/bin\//g' -e s'/^usr\/local\/lib\//usr\/lib32\//g' -e s'/^usr\/local\//usr\//g' tempfile
 	fi
 	for i in `sort -u tempfile`; do echo "backup = $i" >> .PKGINFO; done
-    rm -rf tempfile
+	rm -rf tempfile
 fi
 
 # Generating non optional dependencies fields
@@ -2890,9 +2900,9 @@ if [[ $(grep -q '^Depends:\|^Pre-Depends:' control; echo $?) == 0 ]]; then
 	if [[ $wipeout != set ]]; then
 		for i in `sort -u tempfile22`; do echo "depend = $i" >> .PKGINFO; done
 	else
-	    for i in `sort -u tempfile18`; do echo "depend = $i" >> .PKGINFO; done
+		for i in `sort -u tempfile18`; do echo "depend = $i" >> .PKGINFO; done
 	fi
-    rm -rf *tempfile* dependencies-initial-check-list final-check-list
+	rm -rf *tempfile* dependencies-initial-check-list final-check-list
 fi
 
 # Generating optional dependencies fields
@@ -2919,7 +2929,7 @@ if [[ $(grep -q '^Recommends:\|^Suggests:' control; echo $?) == 0 ]]; then
 			fi
 		done
 	fi
-rm -rf *tempfile* optional-dependencies-initial-check-list final-check-list
+	rm -rf *tempfile* optional-dependencies-initial-check-list final-check-list
 fi
 
 # Moving report files to /tmp/debtap (if any exist)
