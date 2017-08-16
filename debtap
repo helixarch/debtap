@@ -561,7 +561,7 @@ done
 for i in `ls | grep tempfile03`; do
     for j in `gawk '{print $1}' $i`; do
 		for k in `pkgfile -q $j`; do
-			echo $k`head -1 $i | gawk '{print $2$3}'`,
+			echo $k`head -1 $i | gawk '{print $2$3}'`
 		done
     done >> `echo $i | sed s'/tempfile03/tempfile04/'`
 done
