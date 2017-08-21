@@ -2776,6 +2776,7 @@ for i in `cat tempfile17`; do
     fi
 done
 
+touch tempfile22
 if [[ $wipeout != set ]] && [[ $(ls *-tempfile19 &> /dev/null; echo $?) == 0 ]]; then
 	# Isolating versions from packages
 	for i in `ls | grep tempfile19`; do
