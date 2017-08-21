@@ -374,8 +374,6 @@ else
 	if [[ -e usr/local/lib32 ]]; then
 		mkdir usr/lib32 2> /dev/null; mv usr/local/lib32/* usr/lib32; rm -rf usr/local/lib32
 	fi
-
-
 fi
 
 if [[ $pkgbuild == set ]] || [[ $Pkgbuild == set ]]; then
