@@ -2989,7 +2989,6 @@ if [[ -e /tmp/debtap/provisions-untranslated-names-only ]]; then
 fi
 
 # Generating .INSTALL file (if necessary)
-# Array search utility function
 echo -e "\n${lightgreen}==>${NC} ${bold}Checking and generating .INSTALL file (if necessary)...${normal}"
 
 SAVEIFS=$IFS
