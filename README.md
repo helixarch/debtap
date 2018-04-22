@@ -47,3 +47,4 @@ Available options:
     -w  --w  -wipeout   --wipeout     Wipeout versions from all dependencies, conflicts etc.
     -p  --p  -pkgbuild  --pkgbuild    Additionally generate a PKGBUILD file
     -P  --P  -Pkgbuild  --Pkgbuild    Generate a PKGBUILD file only
+    -v  --v  -version   --version     Print version
