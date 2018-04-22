@@ -3010,7 +3010,7 @@ if [[ -e preinst ]]; then
 		sed -i -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/.*install.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' preinst
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*install.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' preinst
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get\|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' preinst | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' preinst | while read -r line; do
 	echo -e "\t$line" >> tempfile1
 	done
 fi
@@ -3033,7 +3033,7 @@ if [[ -e postinst ]]; then
 		sed -i -e '/.*configure.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' postinst
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*configure.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postinst
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get\|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternative\|--slave\|db_\|remove_source\|update_manager\|lintian' postinst | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternative\|--slave\|db_\|remove_source\|update_manager\|lintian' postinst | while read -r line; do
 		echo -e "\t$line" >> tempfile1
 	done
 fi
@@ -3066,7 +3066,7 @@ if [[ -e prerm ]]; then
 		sed -i -e '/.*remove.*)[[:blank:]]\{0,\}$/d' -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' prerm
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' prerm
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get\|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' prerm | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' prerm | while read -r line; do
 		echo -e "\t$line" >> tempfile1
 	done
 fi
@@ -3089,7 +3089,7 @@ if [[ -e postrm ]]; then
 		sed -i -e '/.*remove.*)[[:blank:]]\{0,\}$/d' -e '/.*purge.*)[[:blank:]]\{0,\}$/d' -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' postrm
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1,/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*purge.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postrm
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get\|aptitude \|apt \|apt-get\|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' postrm | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' postrm | while read -r line; do
 		echo -e "\t$line" >> tempfile1
 	done
 fi
