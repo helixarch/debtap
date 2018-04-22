@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-#	Copyright 2014-2017 George Savvidis
+#	Copyright 2014-2018 George Savvidis
 
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -15,6 +15,8 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+Version=3.2
+
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
 lightred='\e[1;31m'
@@ -26,36 +28,41 @@ normal=`tput sgr0`
 
 # Options, help, database update and error messages
 for i in "$@"; do
-	if [[ "$i" =~ ^-(-)?([huqQswpP]*)h([huqQswpP]*)$ ]] || [[ "$i" =~ ^-(-)?help$ ]]; then
+	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)h([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?help$ ]]; then
 		help=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpP]*)u([huqQswpP]*)$ ]] || [[ "$i" =~ ^-(-)?update$ ]]; then
+	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)u([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?update$ ]]; then
 		update=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpP]*)q([huqQswpP]*)$ ]] || [[ "$i" =~ ^-(-)?quiet$ ]]; then
+	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)q([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?quiet$ ]]; then
 		quiet=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpP]*)Q([huqQswpP]*)$ ]] || [[ "$i" =~ ^-(-)?Quiet$ ]]; then
+	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)Q([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?Quiet$ ]]; then
 		Quiet=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpP]*)s([huqQswpP]*)$ ]] || [[ "$i" =~ ^-(-)?pseudo$ ]]; then
+	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)s([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?pseudo$ ]]; then
 		pseudo=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpP]*)w([huqQswpP]*)$ ]] || [[ "$i" =~ ^-(-)?wipeout$ ]]; then
+	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)w([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?wipeout$ ]]; then
 		wipeout=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpP]*)p([huqQswpP]*)$ ]] || [[ "$i" =~ ^-(-)?pkgbuild$ ]]; then
+	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)p([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?pkgbuild$ ]]; then
 		pkgbuild=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpP]*)P([huqQswpP]*)$ ]] || [[ "$i" =~ ^-(-)?Pkgbuild$ ]]; then
+	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)P([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?Pkgbuild$ ]]; then
 		Pkgbuild=set
+	fi
+ 	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)v([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?version$ ]]; then
+		version=set
 	fi
 done
 if [[ $pseudo == set ]] && [[ ! -e /var/lib/pacman/sync/multilib.db ]] && [[ ! -e /var/lib/pacman/sync/multilib-testing.db ]]; then
 	echo -e "${red}Error: You are either running non-x86_64 Arch Linux, or you haven't enabled multilib repository. If you are running x86_64 Arch Linux, you must enable a multilib repository and then synchronize pacman database${NC}"; exit 1
 fi
 if [[ $help == set ]]; then
-	echo -e "Syntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --h  -help      --help        Prints this help message\n    -u  --u  -update    --update      Update debtap database\n    -q  --q  -quiet     --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Q  -Quiet     --Quiet       Bypass all questions (not recommended)\n    -s  --s  -pseudo    --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --w  -wipeout   --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --p  -pkgbuild  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --P  -Pkgbuild  --Pkgbuild    Generate a PKGBUILD file only"; exit 0
+	echo -e "Syntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --h  -help      --help        Print this help message\n    -u  --u  -update    --update      Update debtap database\n    -q  --q  -quiet     --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Q  -Quiet     --Quiet       Bypass all questions (not recommended)\n    -s  --s  -pseudo    --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --w  -wipeout   --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --p  -pkgbuild  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --P  -Pkgbuild  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --v  -version   --version     Print version"; exit 0
+elif [[ $version == set ]]; then
+	echo -e "$Version"; exit 0
 elif [[ $update == set ]]; then
     if [[ $EUID != 0 ]]; then
         echo -e "${red}Error: You must run this command with root privileges${NC}"; exit 1
@@ -68,9 +75,7 @@ elif [[ $update == set ]]; then
             echo -e "${red}Synchronization failed. Exiting...${NC}"; exit 1
         else
             echo -e "${lightgreen}==>${NC} ${bold}Synchronizing debtap database...${normal}"
-            if [[ "$(uname -m)" == "i686" ]]; then
-                _arch=i386
-            elif [[ "$(uname -m)" == "x86_64" ]]; then
+            if [[ "$(uname -m)" == "i686" ]] || [[ "$(uname -m)" == "x86_64" ]]; then
                 _arch=amd64
             elif [[ "$(uname -m)" == "armv7l" ]] || [[ "$(uname -m)" == "armv7h" ]]; then
                 _arch=armhf
@@ -84,7 +89,7 @@ elif [[ $update == set ]]; then
             gzip -df /var/cache/debtap/debian-non-free-packages-files.gz
             curl -C - -f http://ftp.debian.org/debian/dists/sid/contrib/Contents-$_arch.gz > /var/cache/debtap/debian-contrib-packages-files.gz
             gzip -df /var/cache/debtap/debian-contrib-packages-files.gz
-            if [[ $_arch == i386 ]] || [[ $_arch == amd64 ]]; then
+            if [[ $_arch == amd64 ]]; then
                 curl -C - -f http://archive.ubuntu.com/ubuntu/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
             else
                 curl -C - -f http://ports.ubuntu.com/ubuntu-ports/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
@@ -117,7 +122,7 @@ elif [[ $update == set ]]; then
         fi
     fi
 elif [[ "${@: -1}" == "debtap" ]] || [[ "${@: -1}" =~ /debtap$ ]] || [[ "${@: -1}" =~ ^-(-)?([qQswpP]+)$ ]] || [[ "${@: -1}" =~ ^-(-)?([quiet|Quiet|pseudo|wipeout|pkgbuild|Pkgbuild]){1,}$ ]]; then
-	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --h  -help      --help        Prints this help message\n    -u  --u  -update    --update      Update debtap database\n    -q  --q  -quiet     --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Q  -Quiet     --Quiet       Bypass all questions (not recommended)\n    -s  --s  -pseudo    --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --w  -wipeout   --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --p  -pkgbuild  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --P  -Pkgbuild  --Pkgbuild    Generate a PKGBUILD file only"; exit 1
+	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --h  -help      --help        Print this help message\n    -u  --u  -update    --update      Update debtap database\n    -q  --q  -quiet     --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Q  -Quiet     --Quiet       Bypass all questions (not recommended)\n    -s  --s  -pseudo    --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --w  -wipeout   --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --p  -pkgbuild  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --P  -Pkgbuild  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --v  -version   --version     Print version"; exit 1
 elif [[ "${@: -1}" =~ ^(-)+(.)*$ ]] || [[ $(ls "${@: -1}" &> /dev/null; echo $?) != 0 ]]; then
 	echo -e "${red}Error: No such file or directory or invalid option${NC}"; exit 1
 elif [[ $(file -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
@@ -145,7 +150,12 @@ cd "$working_directory"
 
 # Extracting package data and metadata in working directory (also checking package architecture, if you are running the pseudo option)
 echo -e "${lightgreen}==>${NC} ${bold}Extracting package data...${normal}"
-ar p "$package_with_full_path" control.tar.gz | tar xz
+control_tar_check=`ar t "$package_with_full_path" | grep control`
+if [[ $control_tar_check == control.tar.gz ]]; then
+    ar p "$package_with_full_path" control.tar.gz | tar xz
+elif [[ $control_tar_check == control.tar.xz ]]; then
+    ar p "$package_with_full_path" control.tar.xz | tar xJ
+fi
 if [[ $pseudo == set ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) != 0 ]]; then
     echo -e "${red}Error: Invalid package architecture. Removing extracted package data and exiting...${NC}"
     cd ..
@@ -3000,7 +3010,7 @@ if [[ -e preinst ]]; then
 		sed -i -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/.*install.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' preinst
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*install.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' preinst
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' preinst | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get\|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' preinst | while read -r line; do
 	echo -e "\t$line" >> tempfile1
 	done
 fi
@@ -3023,7 +3033,7 @@ if [[ -e postinst ]]; then
 		sed -i -e '/.*configure.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' postinst
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*configure.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postinst
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternative\|--slave\|db_\|remove_source\|update_manager\|lintian' postinst | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get\|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternative\|--slave\|db_\|remove_source\|update_manager\|lintian' postinst | while read -r line; do
 		echo -e "\t$line" >> tempfile1
 	done
 fi
@@ -3056,7 +3066,7 @@ if [[ -e prerm ]]; then
 		sed -i -e '/.*remove.*)[[:blank:]]\{0,\}$/d' -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' prerm
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' prerm
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' prerm | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get\|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' prerm | while read -r line; do
 		echo -e "\t$line" >> tempfile1
 	done
 fi
@@ -3079,7 +3089,7 @@ if [[ -e postrm ]]; then
 		sed -i -e '/.*remove.*)[[:blank:]]\{0,\}$/d' -e '/.*purge.*)[[:blank:]]\{0,\}$/d' -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' postrm
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1,/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*purge.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postrm
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' postrm | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get\|aptitude \|apt \|apt-get\|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' postrm | while read -r line; do
 		echo -e "\t$line" >> tempfile1
 	done
 fi
