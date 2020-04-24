@@ -3347,7 +3347,7 @@ elif [[ $data_tar_check == data.tar ]]; then
 fi
 if [[ -e pkgbuildinstallations1 ]] || [[ -e pkgbuildinstallations2 ]] || [[ -e pkgbuildinstallations32 ]] || [[ -e pkgbuildinstallations64 ]]; then
 	if [[ $(grep '^install' pkgbuildinstallations1 2> /dev/null | wc -l) != $(echo $(($(cat pkgbuildinstallations1 2> /dev/null | wc -l) + $(cat pkgbuildinstallations2 2> /dev/null | wc -l) + $(cat pkgbuildinstallations32 2> /dev/null | wc -l) + $(cat pkgbuildinstallations64 2> /dev/null | wc -l)))) ]]; then
-		echo -e "\n	# Fix directories structure differencies\n	cd \"\${pkgdir}\"" >> PKGBUILD
+		echo -e "\n	# Fix directory structure differences\n	cd \"\${pkgdir}\"" >> PKGBUILD
 	fi
 fi
 if [[ -e pkgbuildinstallations1 ]]; then
