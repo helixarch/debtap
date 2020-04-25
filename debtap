@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-#	Copyright 2014-2018 George Savvidis
+#	Copyright 2014-2020 George Savvidis
 
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Version=3.2.2
+Version=3.3
 
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
@@ -28,31 +28,31 @@ normal=`tput sgr0`
 
 # Options, help, database update and error messages
 for i in "$@"; do
-	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)h([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?help$ ]]; then
+	if [[ "$i" =~ ^-([huqQswpPv]*)h([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--help$ ]]; then
 		help=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)u([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?update$ ]]; then
+	if [[ "$i" =~ ^-([huqQswpPv]*)u([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--update$ ]]; then
 		update=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)q([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?quiet$ ]]; then
+	if [[ "$i" =~ ^-([huqQswpPv]*)q([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--quiet$ ]]; then
 		quiet=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)Q([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?Quiet$ ]]; then
+	if [[ "$i" =~ ^-([huqQswpPv]*)Q([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--Quiet$ ]]; then
 		Quiet=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)s([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?pseudo$ ]]; then
+	if [[ "$i" =~ ^-([huqQswpPv]*)s([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--pseudo$ ]]; then
 		pseudo=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)w([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?wipeout$ ]]; then
+	if [[ "$i" =~ ^-([huqQswpPv]*)w([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--wipeout$ ]]; then
 		wipeout=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)p([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?pkgbuild$ ]]; then
+	if [[ "$i" =~ ^-([huqQswpPv]*)p([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--pkgbuild$ ]]; then
 		pkgbuild=set
 	fi
-	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)P([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?Pkgbuild$ ]]; then
+	if [[ "$i" =~ ^-([huqQswpPv]*)P([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--Pkgbuild$ ]]; then
 		Pkgbuild=set
 	fi
- 	if [[ "$i" =~ ^-(-)?([huqQswpPv]*)v([huqQswpPv]*)$ ]] || [[ "$i" =~ ^-(-)?version$ ]]; then
+ 	if [[ "$i" =~ ^-([huqQswpPv]*)v([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--version$ ]]; then
 		version=set
 	fi
 done
@@ -60,7 +60,7 @@ if [[ $pseudo == set ]] && [[ ! -e /var/lib/pacman/sync/multilib.db ]] && [[ ! -
 	echo -e "${red}Error: You are either running non-x86_64 Arch Linux, or you haven't enabled multilib repository. If you are running x86_64 Arch Linux, you must enable a multilib repository and then synchronize pacman database${NC}"; exit 1
 fi
 if [[ $help == set ]]; then
-	echo -e "Syntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --h  -help      --help        Print this help message\n    -u  --u  -update    --update      Update debtap database\n    -q  --q  -quiet     --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Q  -Quiet     --Quiet       Bypass all questions (not recommended)\n    -s  --s  -pseudo    --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --w  -wipeout   --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --p  -pkgbuild  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --P  -Pkgbuild  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --v  -version   --version     Print version"; exit 0
+	echo -e "Syntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --help        Print this help message\n    -u  --update      Update debtap database\n    -q  --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Quiet       Bypass all questions (not recommended)\n    -s  --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --version     Print version"; exit 0
 elif [[ $version == set ]]; then
 	echo -e "$Version"; exit 0
 elif [[ $update == set ]]; then
@@ -122,7 +122,7 @@ elif [[ $update == set ]]; then
         fi
     fi
 elif [[ "${@: -1}" == "debtap" ]] || [[ "${@: -1}" =~ /debtap$ ]] || [[ "${@: -1}" =~ ^-(-)?([qQswpP]+)$ ]] || [[ "${@: -1}" =~ ^-(-)?([quiet|Quiet|pseudo|wipeout|pkgbuild|Pkgbuild]){1,}$ ]]; then
-	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --h  -help      --help        Print this help message\n    -u  --u  -update    --update      Update debtap database\n    -q  --q  -quiet     --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Q  -Quiet     --Quiet       Bypass all questions (not recommended)\n    -s  --s  -pseudo    --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --w  -wipeout   --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --p  -pkgbuild  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --P  -Pkgbuild  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --v  -version   --version     Print version"; exit 1
+	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --help        Print this help message\n    -u  --update      Update debtap database\n    -q  --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Quiet       Bypass all questions (not recommended)\n    -s  --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --version     Print version"; exit 1
 elif [[ "${@: -1}" =~ ^(-)+(.)*$ ]] || [[ $(ls "${@: -1}" &> /dev/null; echo $?) != 0 ]]; then
 	echo -e "${red}Error: No such file or directory or invalid option${NC}"; exit 1
 elif [[ $(file -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
@@ -199,95 +199,70 @@ if [[ $pkgbuild == set ]] || [[ $Pkgbuild == set ]]; then
 	if [[ -e usr/games ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/games/* usr/bin; rm -rf usr/games' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			for i in usr/share/applications/*.desktop; do
-				echo "sed -i s'/^Exec=\\/usr\\/games\\//Exec=\\/usr\\/bin\\//g' \"$i\"" >> pkgbuildinstallations1
-			done
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/games\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e bin ]]; then
 		echo 'mkdir -p usr/bin 2> /dev/null; mv bin/* usr/bin; rm -rf bin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			for i in usr/share/applications/*.desktop; do
-				echo "sed -i s'/^Exec=\\/bin\\//Exec=\\/usr\\/bin\\//g' \"$i\"" >> pkgbuildinstallations1
-			done
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/bin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e sbin ]]; then
 		echo 'mkdir -p usr/bin 2> /dev/null; mv sbin/* usr/bin; rm -rf sbin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			for i in usr/share/applications/*.desktop; do
-				echo "sed -i s'/^Exec=\\/sbin\\//Exec=\\/usr\\/bin\\//g' \"$i\"" >> pkgbuildinstallations1
-			done
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/sbin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e usr/sbin ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/sbin/* usr/bin; rm -rf usr/sbin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			for i in usr/share/applications/*.desktop; do
-				echo "sed -i s'/^Exec=\\/usr\\/sbin\\//Exec=\\/usr\\/bin\\//g' \"$i\"" >> pkgbuildinstallations1
-			done
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/sbin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e usr/local/games ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/local/games/* usr/bin; rm -rf usr/local/games' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			for i in usr/share/applications/*.desktop; do
-				echo "sed -i s'/^Exec=\\/usr\\/local\\/games\\//Exec=\\/usr\\/bin\\//g' \"$i\"" >> pkgbuildinstallations1
-			done
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/local\\/games\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e usr/local/bin ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/local/bin/* usr/bin; rm -rf usr/local/bin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			for i in usr/share/applications/*.desktop; do
-				echo "sed -i s'/^Exec=\\/usr\\/local\\/bin\\//Exec=\\/usr\\/bin\\//g' \"$i\"" >> pkgbuildinstallations1
-			done
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/local\\/bin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e usr/local/sbin ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/local/sbin/* usr/bin; rm -rf usr/local/sbin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			for i in usr/share/applications/*.desktop; do
-				echo "sed -i s'/^Exec=\\/usr\\/local\\/sbin\\//Exec=\\/usr\\/bin\\//g' \"$i\"" >> pkgbuildinstallations1
-			done
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/local\\/sbin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
 		fi
-	fi
-	if [[ -e lib32 ]]; then
-		echo 'mkdir -p usr/lib 2> /dev/null; mv lib32/* usr/lib; rm -rf lib32' >> pkgbuildinstallations32
-	fi
-	if [[ -e usr/lib32 ]]; then
-		echo 'mkdir usr/lib 2> /dev/null; mv usr/lib32/* usr/lib; rm -rf usr/lib32' >> pkgbuildinstallations32
-	fi
-	if [[ -e usr/local/lib ]]; then
-		echo 'mkdir usr/lib 2> /dev/null; mv usr/local/lib/* usr/lib; rm -rf usr/local/lib' >> pkgbuildinstallations32
-	fi
-	if [[ -e usr/local/lib32 ]]; then
-		echo 'mkdir usr/lib 2> /dev/null; mv usr/local/lib32/* usr/lib; rm -rf usr/local/lib32' >> pkgbuildinstallations32
 	fi
 	if [[ $pseudo != set ]]; then
 		if [[ -e lib ]]; then
 			echo 'mkdir -p usr/lib 2> /dev/null; mv lib/* usr/lib; rm -rf lib' >> pkgbuildinstallations1
 		fi
 		if [[ -e lib32 ]]; then
-			echo 'mkdir -p usr/lib32 2> /dev/null; mv lib32/* usr/lib32; rm -rf lib32' >> pkgbuildinstallations64
+			if [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+				echo 'mkdir -p usr/lib 2> /dev/null; mv lib32/* usr/lib; rm -rf lib32' >> pkgbuildinstallations32
+			else
+				echo 'mkdir -p usr/lib32 2> /dev/null; mv lib32/* usr/lib32; rm -rf lib32' >> pkgbuildinstallations64
+			fi
 		fi
 		if [[ -e lib64 ]]; then
 			echo 'mkdir -p usr/lib 2> /dev/null; mv lib64/* usr/lib; rm -rf lib64' >> pkgbuildinstallations64
 		fi
-		if [[ -e usr/lib32 ]]; then
-			echo 'mkdir usr/lib32 2> /dev/null; mv usr/lib32/* usr/lib32; rm -rf usr/lib32' >> pkgbuildinstallations64
+		if [[ -e usr/lib32 ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+			echo 'mkdir usr/lib 2> /dev/null; mv usr/lib32/* usr/lib; rm -rf usr/lib32' >> pkgbuildinstallations32
 		fi
 		if [[ -e usr/lib64 ]]; then
 			echo 'mkdir usr/lib 2> /dev/null; mv usr/lib64/* usr/lib; rm -rf usr/lib64' >> pkgbuildinstallations64
 		fi
-		if [[ -e usr/local/lib ]]; then
-			echo 'mkdir usr/lib 2> /dev/null; mv usr/local/lib/* usr/lib; rm -rf usr/local/lib' >> pkgbuildinstallations64
-		fi
-		if [[ -e usr/local/lib32 ]]; then
-			echo 'mkdir usr/lib32 2> /dev/null; mv usr/local/lib32/* usr/lib32; rm -rf usr/local/lib32' >> pkgbuildinstallations64
+		if [[ -e usr/local/lib32 ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+			echo 'mkdir usr/local/lib 2> /dev/null; mv usr/local/lib32/* usr/local/lib; rm -rf usr/local/lib32' >> pkgbuildinstallations32
 		fi
 		if [[ -e usr/local/lib64 ]]; then
-			echo 'mkdir usr/lib 2> /dev/null; mv usr/local/lib64/* usr/lib; rm -rf usr/local/lib64' >> pkgbuildinstallations64
+			echo 'mkdir usr/local/lib 2> /dev/null; mv usr/local/lib64/* usr/local/lib; rm -rf usr/local/lib64' >> pkgbuildinstallations64
 		fi
 	else
 		if [[ -e lib ]]; then
@@ -301,10 +276,7 @@ if [[ $pkgbuild == set ]] || [[ $Pkgbuild == set ]]; then
 			echo 'mkdir usr/lib32 2> /dev/null; mv usr/lib/* usr/lib32; rm -rf usr/lib' >> pkgbuildinstallations64
 		fi
 		if [[ -e usr/local/lib ]]; then
-			echo 'mkdir usr/lib32 2> /dev/null; mv usr/local/lib/* usr/lib32; rm -rf usr/local/lib' >> pkgbuildinstallations64
-		fi
-		if [[ -e usr/local/lib32 ]]; then
-			echo 'mkdir usr/lib32 2> /dev/null; mv usr/local/lib32/* usr/lib32; rm -rf usr/local/lib32' >> pkgbuildinstallations64
+			echo 'mkdir usr/local/lib32 2> /dev/null; mv usr/local/lib/* usr/local/lib32; rm -rf usr/local/lib' >> pkgbuildinstallations64
 		fi
 	fi
 fi
@@ -331,8 +303,8 @@ if [[ -e usr/local/sbin ]]; then
 	mkdir usr/bin 2> /dev/null; mv usr/local/sbin/* usr/bin; rm -rf usr/local/sbin
 fi
 if [[ -e usr/share/applications ]]; then
-	for i in usr/share/applications/*.desktop; do
-		sed -i -e s'/^Exec=\/bin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/sbin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/sbin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/games\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/local\/bin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/local\/sbin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/local\/games\//Exec=\/usr\/bin\//g' "$i" 2> /dev/null
+	ls usr/share/applications/*.desktop | while read line; do
+		sed -i -e s'/^Exec=\/bin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/sbin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/sbin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/games\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/local\/bin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/local\/sbin\//Exec=\/usr\/bin\//g' -e s'/^Exec=\/usr\/local\/games\//Exec=\/usr\/bin\//g' "$line" 2> /dev/null
 	done
 fi
 if [[ $pseudo != set ]]; then
@@ -355,18 +327,11 @@ if [[ $pseudo != set ]]; then
 	if [[ -e usr/lib64 ]]; then
 		mkdir usr/lib 2> /dev/null; mv usr/lib64/* usr/lib; rm -rf usr/lib64
 	fi
-	if [[ -e usr/local/lib ]]; then
-		mkdir usr/lib 2> /dev/null; mv usr/local/lib/* usr/lib; rm -rf usr/local/lib
-	fi
-	if [[ -e usr/local/lib32 ]]; then
-		if [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
-			mkdir usr/lib 2> /dev/null; mv usr/local/lib32/* usr/lib; rm -rf usr/local/lib32
-		else
-			mkdir usr/lib32 2> /dev/null; mv usr/local/lib32/* usr/lib32; rm -rf usr/local/lib32
-		fi
+	if [[ -e usr/local/lib32 ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+		mkdir usr/local/lib 2> /dev/null; mv usr/local/lib32/* usr/local/lib; rm -rf usr/local/lib32
 	fi
 	if [[ -e usr/local/lib64 ]]; then
-		mkdir usr/lib 2> /dev/null; mv usr/local/lib64/* usr/lib; rm -rf usr/local/lib64
+		mkdir usr/local/lib 2> /dev/null; mv usr/local/lib64/* usr/local/lib; rm -rf usr/local/lib64
 	fi
 else
 	if [[ -e lib ]]; then
@@ -379,21 +344,18 @@ else
 		mkdir usr/lib32 2> /dev/null; mv usr/lib/* usr/lib32; rm -rf usr/lib
 	fi
 	if [[ -e usr/local/lib ]]; then
-		mkdir usr/lib32 2> /dev/null; mv usr/local/lib/* usr/lib32; rm -rf usr/local/lib
-	fi
-	if [[ -e usr/local/lib32 ]]; then
-		mkdir usr/lib32 2> /dev/null; mv usr/local/lib32/* usr/lib32; rm -rf usr/local/lib32
+		mkdir usr/local/lib32 2> /dev/null; mv usr/local/lib/* usr/local/lib32; rm -rf usr/local/lib
 	fi
 fi
 
 if [[ $pkgbuild == set ]] || [[ $Pkgbuild == set ]]; then
-	if [[ -e usr/local ]] && [[ $(ls -A usr/local 2> /dev/null) ]]; then
-		echo 'mv usr/local/* usr; rm -rf usr/local' >> pkgbuildinstallations2
+	if [[ -e usr/local ]] && [[ ! $(ls -A usr/local 2> /dev/null) ]]; then
+		echo 'rm -rf usr/local' >> pkgbuildinstallations2
 	fi
 fi
 
-if [[ -e usr/local ]]; then
-	mv usr/local/* usr; rm -rf usr/local
+if [[ -e usr/local ]] && [[ ! $(ls -A usr/local 2> /dev/null) ]]; then
+	rm -rf usr/local
 fi
 
 # Generating .PKGINFO file
@@ -3011,7 +2973,7 @@ if [[ -e preinst ]]; then
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*install.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' preinst
 	fi
 	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' preinst | while read -r line; do
-	echo -e "\t$line" >> tempfile1
+	printf '\t%s\n' "$line" >> tempfile1
 	done
 fi
 echo "}" >> tempfile1
@@ -3034,7 +2996,7 @@ if [[ -e postinst ]]; then
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*configure.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postinst
 	fi
 	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternative\|--slave\|db_\|remove_source\|update_manager\|lintian' postinst | while read -r line; do
-		echo -e "\t$line" >> tempfile1
+		printf '\t%s\n' "$line" >> tempfile1
 	done
 fi
 if [[ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) == 0 ]]; then
@@ -3045,13 +3007,13 @@ if [[ $(echo $(($(grep "[[:blank:]]" -o tempfile1 | wc -l) + 16))) != $(echo $((
 	cat tempfile1 >> tempfile2
 fi
 
-if [[ $(grep -q '^pre_install() {$' tempfile2; echo $?) == 0 ]]; then
+if [[ $(grep -q '^pre_install() {$' tempfile2 2> /dev/null; echo $?) == 0 ]]; then
 	echo -e "\npre_upgrade() {" >> tempfile2
 	echo -e "\tpre_install" >> tempfile2
 	echo "}" >> tempfile2
 fi
 
-if [[ $(grep -q '^post_install() {$' tempfile2; echo $?) == 0 ]]; then
+if [[ $(grep -q '^post_install() {$' tempfile2 2> /dev/null; echo $?) == 0 ]]; then
 	echo -e "\npost_upgrade() {" >> tempfile2
 	echo -e "\tpost_install" >> tempfile2
 	echo "}" >> tempfile2
@@ -3067,7 +3029,7 @@ if [[ -e prerm ]]; then
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' prerm
 	fi
 	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' prerm | while read -r line; do
-		echo -e "\t$line" >> tempfile1
+		printf '\t%s\n' "$line" >> tempfile1
 	done
 fi
 echo "}" >> tempfile1
@@ -3090,7 +3052,7 @@ if [[ -e postrm ]]; then
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1,/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*purge.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postrm
 	fi
 	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' postrm | while read -r line; do
-		echo -e "\t$line" >> tempfile1
+		printf '\t%s\n' "$line" >> tempfile1
 	done
 fi
 if [[ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) == 0 ]]; then
@@ -3193,9 +3155,9 @@ if [[ $Pkgbuild != set ]]; then
 echo -e "\n${lightgreen}==>${NC} ${bold}Creating final package...${normal}"
 fakeroot << EOF
 tar --force-local -pcf `grep '^pkgname =' .PKGINFO | gawk '{print $3}'`-`grep '^pkgver =' .PKGINFO | gawk '{print $3}'`-`grep '^arch =' .PKGINFO | gawk '{print $3}'`.pkg.tar --exclude='pkgbuildinstallations*' * .PKGINFO .INSTALL .MTREE 2> /dev/null
-xz --threads=0 -z -9 *.tar
+zstd -q -T0 --ultra -20 *.tar
 EOF
-mv *.xz "$(dirname "$package_with_full_path")"
+mv *.zst "$(dirname "$package_with_full_path")"
 fi
 
 # Announcement of successful creation of package
@@ -3224,7 +3186,7 @@ else
 fi
 if [[ $(grep -q '^pkgname = lib32-' .PKGINFO; echo $?) != 0 ]] && [[ $(grep '^pkgname =' .PKGINFO | grep -q -- '-multilib$'; echo $?) != 0 ]] && [[ $(ls -A usr/bin) ]]; then
 	echo "$(grep '^pkgname =' .PKGINFO | sed s'/ //g')-bin" >> PKGBUILD
-else
+# else
 	echo "$(grep '^pkgname =' .PKGINFO | sed s'/ //g')" >> PKGBUILD
 fi
 echo "$(grep '^pkgver =' .PKGINFO | sed -e s'/ //g' -e s'/-/ /g' | gawk '{print $1}')" >> PKGBUILD
