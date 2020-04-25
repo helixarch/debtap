@@ -39,12 +39,12 @@ Any recommendations or questions for debtap are welcomed!
 Available options:
 ==================
 
-    -h  --h  -help      --help        Prints help
-    -u  --u  -update    --update      Update debtap database
-    -q  --q  -quiet     --quiet       Bypass all questions, except for editing metadata file(s)
-    -Q  --Q  -Quiet     --Quiet       Bypass all questions (not recommended)
-    -s  --s  -pseudo    --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package
-    -w  --w  -wipeout   --wipeout     Wipeout versions from all dependencies, conflicts etc.
-    -p  --p  -pkgbuild  --pkgbuild    Additionally generate a PKGBUILD file
-    -P  --P  -Pkgbuild  --Pkgbuild    Generate a PKGBUILD file only
-    -v  --v  -version   --version     Print version
+    -h  --help        Prints help
+    -u  --update      Update debtap database
+    -q  --quiet       Bypass all questions, except for editing metadata file(s)
+    -Q  --Quiet       Bypass all questions (not recommended)
+    -s  --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package
+    -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.
+    -p  --pkgbuild    Additionally generate a PKGBUILD file
+    -P  --Pkgbuild    Generate a PKGBUILD file only
+    -v  --version     Print version
