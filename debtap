@@ -2792,7 +2792,7 @@ fi
 
 # Generating replacements fields
 if [[ $(grep -q ^Replaces: control; echo $?) == 0 ]]; then
-    grep ^Replaces: control | sed -e s'/^Replaces: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
+    grep ^Replaces: control | sed -e s'/^Replaces://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
 		for word in $line; do
 			echo $word >> tempfile01
 		done
@@ -2810,7 +2810,7 @@ fi
 
 # Generating conflicts fields
 if [[ $(grep -q ^Conflicts: control; echo $?) == 0 ]]; then
-    grep ^Conflicts: control | sed -e s'/^Conflicts: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
+    grep ^Conflicts: control | sed -e s'/^Conflicts://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
 		for word in $line; do
 			echo $word >> tempfile01
 		done
@@ -2828,7 +2828,7 @@ fi
 
 # Generating provisions fields
 if [[ $(grep -q ^Provides: control; echo $?) == 0 ]]; then
-    grep ^Provides: control | sed -e s'/^Provides: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
+    grep ^Provides: control | sed -e s'/^Provides://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
 		for word in $line; do
 			echo $word >> tempfile01
 		done
@@ -2862,7 +2862,7 @@ fi
 
 # Generating non optional dependencies fields
 if [[ $(grep -q '^Depends:\|^Pre-Depends:' control; echo $?) == 0 ]]; then
-    grep '^Depends:\|^Pre-Depends:' control | sed -e s'/^Depends: \|^Pre-Depends: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
+    grep '^Depends:\|^Pre-Depends:' control | sed -e s'/^Pre-Depends://g' -e s'/^Depends://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
 		for word in $line; do
 			echo $word >> tempfile01
 		done
@@ -2880,7 +2880,7 @@ fi
 
 # Generating optional dependencies fields
 if [[ $(grep -q '^Recommends:\|^Suggests:' control; echo $?) == 0 ]]; then
-    grep '^Recommends:\|^Suggests:' control | sed -e s'/^Recommends: \|^Suggests: //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
+    grep '^Recommends:\|^Suggests:' control | sed -e s'/^Recommends:\|^Suggests://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
 		for word in $line; do
 			echo $word >> tempfile01
 		done
