@@ -440,8 +440,10 @@ echo "builddate = `date -u "+%s"`" >> .PKGINFO
 if [[ $quiet == set ]] || [[ $Quiet == set ]]; then
     echo "packager = Unknown Packager" >> .PKGINFO
 else
+    source /usr/share/makepkg/util/config.sh
+    load_makepkg_config
     echo -e "\n${lightblue}::${NC} Enter Packager name:"
-    read packager_name
+    read -e -i "${PACKAGER}" packager_name
     echo "packager = $packager_name" >> .PKGINFO
 fi
 
