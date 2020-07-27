@@ -77,6 +77,8 @@ elif [[ $update == set ]]; then
             echo -e "${lightgreen}==>${NC} ${bold}Synchronizing debtap database...${normal}"
             if [[ "$(uname -m)" == "i686" ]] || [[ "$(uname -m)" == "x86_64" ]]; then
                 _arch=amd64
+            elif [[ "$(uname -m)" == "armv6l" ]] || [[ "$(uname -m)" == "armv6h" ]]; then
+                _arch=armel
             elif [[ "$(uname -m)" == "armv7l" ]] || [[ "$(uname -m)" == "armv7h" ]]; then
                 _arch=armhf
             elif [[ "$(uname -m)" == "aarch64" ]]; then
