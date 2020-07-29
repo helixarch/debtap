@@ -3186,7 +3186,7 @@ else
 	echo "# Maintainer: $(grep '^packager =' .PKGINFO | gawk '{print $3}')" >> PKGBUILD
 	echo "# Contributor: $(grep '^packager =' .PKGINFO | gawk '{print $3}')" >> PKGBUILD
 fi
-if [[ $(grep -q '^pkgname = lib32-' .PKGINFO; echo $?) != 0 ]] && [[ $(grep '^pkgname =' .PKGINFO | grep -q -- '-multilib$'; echo $?) != 0 ]] && [[ $(ls -A usr/bin &> /dev/null) ]]; then
+if [[ $(grep -q '^pkgname = lib32-' .PKGINFO; echo $?) != 0 ]] && [[ $(grep '^pkgname =' .PKGINFO | grep -q -- '-multilib$'; echo $?) != 0 ]] && [[ $(ls -A usr/bin 2> /dev/null) ]]; then
 	echo "$(grep '^pkgname =' .PKGINFO | sed s'/ //g')-bin" >> PKGBUILD
 else
 	echo "$(grep '^pkgname =' .PKGINFO | sed s'/ //g')" >> PKGBUILD
