@@ -113,7 +113,8 @@ elif [[ $update == set ]]; then
                         echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
                     else    
                         echo -e "${lightgreen}==>${NC} ${bold}Generating base group packages list...${normal}"
-                        pacman -Qqg base > /var/cache/debtap/base-packages
+                        #pacman -Qqg base > /var/cache/debtap/base-packages
+                        pacman -Qi base | grep Depends | cut -d: -f2
                         chmod 644 /var/cache/debtap/*
                         echo -e "${lightgreen}==>${NC} ${bold}All steps successfully completed!${normal}"; exit 0
                     fi
