@@ -113,7 +113,8 @@ elif [[ $update == set ]]; then
                         echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
                     else    
                         echo -e "${lightgreen}==>${NC} ${bold}Generating base group packages list...${normal}"
-                        pacman -Qqg base > /var/cache/debtap/base-packages
+                        rm -rf /var/cache/debtap/base-packages
+                        for i in $(pacman -Qi base 2> /dev/null | grep ^Depends | cut -d: -f2); do echo "$i" >> /var/cache/debtap/base-packages; done; echo >> /var/cache/debtap/base-packages
                         chmod 644 /var/cache/debtap/*
                         echo -e "${lightgreen}==>${NC} ${bold}All steps successfully completed!${normal}"; exit 0
                     fi
@@ -243,7 +244,7 @@ if [[ $pkgbuild == set ]] || [[ $Pkgbuild == set ]]; then
 			echo 'mkdir -p usr/lib 2> /dev/null; mv lib/* usr/lib; rm -rf lib' >> pkgbuildinstallations1
 		fi
 		if [[ -e lib32 ]]; then
-			if [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+			if [[ $(grep -i ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
 				echo 'mkdir -p usr/lib 2> /dev/null; mv lib32/* usr/lib; rm -rf lib32' >> pkgbuildinstallations32
 			else
 				echo 'mkdir -p usr/lib32 2> /dev/null; mv lib32/* usr/lib32; rm -rf lib32' >> pkgbuildinstallations64
@@ -252,13 +253,13 @@ if [[ $pkgbuild == set ]] || [[ $Pkgbuild == set ]]; then
 		if [[ -e lib64 ]]; then
 			echo 'mkdir -p usr/lib 2> /dev/null; mv lib64/* usr/lib; rm -rf lib64' >> pkgbuildinstallations64
 		fi
-		if [[ -e usr/lib32 ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+		if [[ -e usr/lib32 ]] && [[ $(grep -i ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
 			echo 'mkdir usr/lib 2> /dev/null; mv usr/lib32/* usr/lib; rm -rf usr/lib32' >> pkgbuildinstallations32
 		fi
 		if [[ -e usr/lib64 ]]; then
 			echo 'mkdir usr/lib 2> /dev/null; mv usr/lib64/* usr/lib; rm -rf usr/lib64' >> pkgbuildinstallations64
 		fi
-		if [[ -e usr/local/lib32 ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+		if [[ -e usr/local/lib32 ]] && [[ $(grep -i ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
 			echo 'mkdir usr/local/lib 2> /dev/null; mv usr/local/lib32/* usr/local/lib; rm -rf usr/local/lib32' >> pkgbuildinstallations32
 		fi
 		if [[ -e usr/local/lib64 ]]; then
@@ -312,7 +313,7 @@ if [[ $pseudo != set ]]; then
 		mkdir -p usr/lib 2> /dev/null; mv lib/* usr/lib; rm -rf lib
 	fi
 	if [[ -e lib32 ]]; then
-		if [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+		if [[ $(grep -i ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
 			mkdir -p usr/lib 2> /dev/null; mv lib32/* usr/lib; rm -rf lib32
 		else
 			mkdir -p usr/lib32 2> /dev/null; mv lib32/* usr/lib32; rm -rf lib32
@@ -321,13 +322,13 @@ if [[ $pseudo != set ]]; then
 	if [[ -e lib64 ]]; then
 		mkdir -p usr/lib 2> /dev/null; mv lib64/* usr/lib; rm -rf lib64
 	fi
-	if [[ -e usr/lib32 ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+	if [[ -e usr/lib32 ]] && [[ $(grep -i ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
 		mkdir usr/lib 2> /dev/null; mv usr/lib32/* usr/lib; rm -rf usr/lib32
 	fi
 	if [[ -e usr/lib64 ]]; then
 		mkdir usr/lib 2> /dev/null; mv usr/lib64/* usr/lib; rm -rf usr/lib64
 	fi
-	if [[ -e usr/local/lib32 ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+	if [[ -e usr/local/lib32 ]] && [[ $(grep -i ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
 		mkdir usr/local/lib 2> /dev/null; mv usr/local/lib32/* usr/local/lib; rm -rf usr/local/lib32
 	fi
 	if [[ -e usr/local/lib64 ]]; then
@@ -364,42 +365,42 @@ echo -e "${lightgreen}==>${NC} ${bold}Generating .PKGINFO file...${normal}"
 # Generating pkgname field
 if [[ $pseudo == set ]] && [[ $(ls -A usr/lib32 2> /dev/null) ]] && [[ ! $(ls -A usr/bin 2> /dev/null) ]]; then
 	for i in {git,bzr,darcs,hg}; do
-		if [[ $(grep ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "pkgname = lib32-`grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
+		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
+			echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
 		fi
 	done
-	if [[ $(grep ^Version: control | gawk '{print $2}' | grep -q svn; echo $?) == 0 ]]; then
-		echo "pkgname = lib32-`grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
+	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q svn; echo $?) == 0 ]]; then
+		echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
 	fi
 	for i in {cvs,CVS}; do
-		if [[ $(grep ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "pkgname = lib32-`grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
+		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
+			echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
 		fi
 	done
-	if [[ $(grep ^Version: control | gawk '{print $2}' | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) != 0 ]]; then
-		echo "pkgname = lib32-`grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`" | sed s'/--/-/g' > .PKGINFO
+	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) != 0 ]]; then
+		echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`" | sed s'/--/-/g' > .PKGINFO
 	fi
 else
 	for i in {git,bzr,darcs,hg}; do
-		if [[ $(grep ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "pkgname = `grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
+		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
+			echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
 		fi
 	done
-	if [[ $(grep ^Version: control | gawk '{print $2}' | grep -q svn; echo $?) == 0 ]]; then
-		echo "pkgname = `grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
+	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q svn; echo $?) == 0 ]]; then
+		echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
 	fi
 	for i in {cvs,CVS}; do
-		if [[ $(grep ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "pkgname = `grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
+		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
+			echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
 		fi
 	done
-	if [[ $(grep ^Version: control | gawk '{print $2}' | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) != 0 ]]; then
-		echo "pkgname = `grep ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`" | sed s'/demo$/-demo/' | sed s'/trial$/-trial/' | sed s'/--/-/g' > .PKGINFO
+	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) != 0 ]]; then
+		echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`" | sed s'/demo$/-demo/' | sed s'/trial$/-trial/' | sed s'/--/-/g' > .PKGINFO
 	fi
 fi
 
 # Generating pkgver field
-version=$(grep ^Version: control | gawk '{print $2}' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\././g' | sed s'/\.$//')
+version=$(grep -i ^Version: control | gawk '{print $2}' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\././g' | sed s'/\.$//')
 for i in {git,bzr,darcs,hg}; do
     if [[ $(echo $version | grep -q $i; echo $?) == 0 ]]; then
 		echo "pkgver = `echo $version | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`"-1 >> .PKGINFO
@@ -423,15 +424,15 @@ if [[ $(echo $version | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) !
 fi
 
 # Generating pkgdesc field
-if [[ $(echo `grep -v ":\| \." control` | grep -iq "`grep ^Description: control | sed s'/^Description: //' | sed s'/\.//'`"; echo $?) == 0 ]]; then
+if [[ $(echo `grep -v ":\| \." control` | grep -iq "`grep -i ^Description: control | sed s'/^Description: //i' | sed s'/\.//'`"; echo $?) == 0 ]]; then
     description=$(echo $(echo "`grep -v ":\| \." control`") | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
 else
-    description=$(echo $(echo "`grep ^Description: control | sed s'/^Description: //' | sed 's/.*/\u&/'`" | sed s'/\.//'). `grep -v ":\| \." control` | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
+    description=$(echo $(echo "`grep -i ^Description: control | sed s'/^Description: //i' | sed 's/.*/\u&/'`" | sed s'/\.//'). `grep -v ":\| \." control` | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
 fi
 echo "pkgdesc = $description" >> .PKGINFO
 
 # Generating url field
-echo "url = `grep ^Homepage: control | gawk '{print $2}'`" | sed s'/\/$//' >> .PKGINFO
+echo "url = `grep -i ^Homepage: control | gawk '{print $2}'`" | sed s'/\/$//' >> .PKGINFO
 
 # Generating builddate (which is actually packaging date) field
 echo "builddate = `date -u "+%s"`" >> .PKGINFO
@@ -449,7 +450,7 @@ fi
 
 # Generating arch field
 if [[ $pseudo != set ]]; then
-	echo "arch = `grep ^Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/armhf/armv7h/' -e s'/arm64/aarch64/' -e s'/all/any/'`" >> .PKGINFO
+	echo "arch = `grep -i ^Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/armhf/armv7h/' -e s'/arm64/aarch64/' -e s'/all/any/'`" >> .PKGINFO
 else
 	echo "arch = x86_64" >> .PKGINFO
 fi
@@ -2655,6 +2656,8 @@ grep -q "^default-jre$\|^default-jre " tempfile02 && echo java-runtime >> final-
 grep -q "^python:any$\|^python:any " tempfile02 && echo python >> final-check-list
 grep "^openjdk-[0-9]+-jdk$\|^openjdk-[0-9]+-jdk " tempfile02 | sort -uV | tail -1 | sed s"/openjdk-\([0-9]\+\)-jdk/jdk\1-openjdk/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 grep "^openjdk-[0-9]+-jre\(-headless\)\?$\|^openjdk-[0-9]+-jre\(-headless\)\? " tempfile02 | sort -uV | tail -1 | sed s"/openjdk-\([0-9]\+\)-jre/jre\1-openjdk/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
+grep "^libstdc[0-9]+$\|libstdc[0-9]+ " tempfile02 | sort -uV | tail -1 | sed s"/libstdc\([0-9]\+\)/$(pacman -Ssq libstdc | sort -uV | tail -1)/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
+grep "^qt[0-9]+-default$\|qt[0-9]+-default " tempfile02 | sed s"/qt\([0-9]\+\)-default/qt\1-base/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 if [[ $pseudo != set ]]; then
 	grep -q "^xlibs$\|^xlibs " tempfile02 && echo libx11 >> final-check-list
 	grep -q "^libgl1$\|^libgl1 " tempfile02 && echo libgl >> final-check-list
@@ -2662,6 +2665,7 @@ if [[ $pseudo != set ]]; then
 	grep "^libpango$\|^libpango " tempfile02 | sed s"/libpango/pango/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 	grep "^libpangomm$\|^libpangomm " tempfile02 | sed s"/libpangomm/pangomm/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 	grep "^libcupsys2$\|^libcupsys2 " tempfile02 | sed s"/libcupsys2/libcups/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
+	grep "^jackd[0-9]*$\|^jackd-[0-9]* " tempfile02 | sort -uV | tail -1 | sed s"/jackd\([0-9]\*\)/jack\1/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 else
 	grep -q "^xlibs$\|^xlibs " tempfile02 && echo lib32-libx11 >> final-check-list
 	grep -q "^libgl1$\|^libgl1 " tempfile02 && echo lib32-libgl >> final-check-list
@@ -2669,6 +2673,7 @@ else
 	grep "^libpango$\|^libpango " tempfile02 | sed s"/libpango/lib32-pango/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 	grep "^libpangomm$\|^libpangomm " tempfile02 | sed s"/libpangomm/lib32-pangomm/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 	grep "^libcupsys2$\|^libcupsys2 " tempfile02 | sed s"/libcupsys2/lib32-libcups/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
+	grep "^jackd[0-9]*$\|^jackd-[0-9]* " tempfile02 | sort -uV | tail -1 | sed s"/jackd\([0-9]\*\)/lib32-jack\1/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 fi
 
 # Stripping unnecessary symbols and words from packages versions
@@ -2792,13 +2797,13 @@ fi
 
 # Generating replacements fields
 if [[ $(grep -q ^Replaces: control; echo $?) == 0 ]]; then
-    grep ^Replaces: control | sed -e s'/^Replaces://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
+    grep -i ^Replaces: control | sed -e s'/^Replaces://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
 		for word in $line; do
 			echo $word >> tempfile01
 		done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v '^xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > replacements-initial-check-list
+    grep -v '^xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > replacements-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]]; then
 		for i in `sort -u tempfile22`; do echo "replaces = $i" >> .PKGINFO; done
@@ -2810,13 +2815,13 @@ fi
 
 # Generating conflicts fields
 if [[ $(grep -q ^Conflicts: control; echo $?) == 0 ]]; then
-    grep ^Conflicts: control | sed -e s'/^Conflicts://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
+    grep -i ^Conflicts: control | sed -e s'/^Conflicts://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
 		for word in $line; do
 			echo $word >> tempfile01
 		done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > conflicts-initial-check-list
+    grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > conflicts-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]]; then
 		for i in `sort -u tempfile22`; do echo "conflict = $i" >> .PKGINFO; done
@@ -2828,13 +2833,13 @@ fi
 
 # Generating provisions fields
 if [[ $(grep -q ^Provides: control; echo $?) == 0 ]]; then
-    grep ^Provides: control | sed -e s'/^Provides://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
+    grep -i ^Provides: control | sed -e s'/^Provides://g' -e s'/^ //g' -e s'/ (/(/g' -e s'/= /=/g' -e s'/>> />/g' -e s'/<< /</g' -e s'/,\||/ /g' -e s'/  / /g' | while read line; do
 		for word in $line; do
 			echo $word >> tempfile01
 		done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > provisions-initial-check-list
+    grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > provisions-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]] && [[ $pkgbuild != set ]] && [[ $Pkgbuild != set ]]; then
 		for i in `sort -u tempfile22`; do echo "provides = $i" >> .PKGINFO; done
@@ -2848,7 +2853,7 @@ fi
 if [[ -e conffiles ]]; then
     sed s'/^\///g' conffiles > tempfile
     if [[ $pseudo != set ]]; then
-		if [[ $(grep ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
+		if [[ $(grep -i ^Architecture: control | grep -q i386; echo $?) == 0 ]]; then
 			sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib\//g' -e s'/^lib32\//usr\/lib\//g' -e s'/^usr\/lib32\//usr\/lib\//g' -e s'/^usr\/local\/sbin\//usr\/bin\//g' -e s'/^usr\/local\/games\//usr\/bin\//g' -e s'/^usr\/local\/lib32\//usr\/lib\//g' -e s'/^usr\/local\//usr\//g' tempfile
 		else
 			sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib\//g' -e s'/^lib32\//usr\/lib32\//g' -e s'/^lib64\//usr\/lib\//g' -e s'/^usr\/lib64\//usr\/lib\//g' -e s'/^usr\/local\/sbin\//usr\/bin\//g' -e s'/^usr\/local\/games\//usr\/bin\//g' -e s'/^usr\/local\/lib64\//usr\/lib\//g' -e s'/^usr\/local\//usr\//g' tempfile
@@ -2868,7 +2873,7 @@ if [[ $(grep -q '^Depends:\|^Pre-Depends:' control; echo $?) == 0 ]]; then
 		done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > dependencies-initial-check-list
+    grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > dependencies-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]]; then
 		for i in `sort -u tempfile22`; do echo "depend = $i" >> .PKGINFO; done
@@ -2886,7 +2891,7 @@ if [[ $(grep -q '^Recommends:\|^Suggests:' control; echo $?) == 0 ]]; then
 		done
     done
     sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
-    grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > optional-dependencies-initial-check-list
+    grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > optional-dependencies-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]]; then
 		for i in `sort -u tempfile22`; do
@@ -3074,7 +3079,7 @@ if [[ -e tempfile2 ]]; then
 	sed -i s'/^[[:blank:]]\{1,\}$//g' tempfile2
     
 	if [[ $pseudo != set ]]; then
-		if [[ $(grep ^Architecture: control \| grep -q i386; echo $?) == 0 ]]; then
+		if [[ $(grep -i ^Architecture: control \| grep -q i386; echo $?) == 0 ]]; then
 			sed -i -e s'/ \/bin\// \/usr\/bin\//g' -e s'/ \/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/games\// \/usr\/bin\//g' -e s'/ \/lib\// \/usr\/lib\//g' -e s'/ \/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/local\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/local\/games\// \/usr\/bin\//g' -e s'/ \/usr\/local\/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/local\// \/usr\//g' tempfile2
 			sed -i -e s'/=\/bin\//=\/usr\/bin\//g' -e s'/=\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/games\//=\/usr\/bin\//g' -e s'/=\/lib\//=\/usr\/lib\//g' -e s'/=\/lib32\//=\/usr\/lib\//g' -e s'/=\/usr\/lib32\//=\/usr\/lib\//g' -e s'/=\/usr\/local\/sbin\//=\/usr\/bin\//g' -e s'/=\/usr\/local\/games\//=\/usr\/bin\//g' -e s'/=\/usr\/local\/lib32\//=\/usr\/lib\//g' -e s'/=\/usr\/local\//=\/usr\//g' tempfile2
 			sed -i -e s'/>\/bin\//>\/usr\/bin\//g' -e s'/>\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/games\//>\/usr\/bin\//g' -e s'/>\/lib\//>\/usr\/lib\//g' -e s'/>\/lib32\//>\/usr\/lib\//g' -e s'/>\/usr\/lib32\//>\/usr\/lib\//g' -e s'/>\/usr\/local\/sbin\//>\/usr\/bin\//g' -e s'/>\/usr\/local\/games\//>\/usr\/bin\//g' -e s'/>\/usr\/local\/lib32\//>\/usr\/lib\//g' -e s'/>\/usr\/local\//>\/usr\//g' tempfile2
