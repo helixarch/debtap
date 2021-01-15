@@ -15,7 +15,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Version=3.3.2
+Version=3.4
 
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
