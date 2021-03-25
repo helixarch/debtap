@@ -126,7 +126,7 @@ elif [[ "${@: -1}" == "debtap" ]] || [[ "${@: -1}" =~ /debtap$ ]] || [[ "${@: -1
 	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --help        Print this help message\n    -u  --update      Update debtap database\n    -q  --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Quiet       Bypass all questions (not recommended)\n    -s  --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --version     Print version"; exit 1
 elif [[ "${@: -1}" =~ ^(-)+(.)*$ ]] || [[ $(ls "${@: -1}" &> /dev/null; echo $?) != 0 ]]; then
 	echo -e "${red}Error: No such file or directory or invalid option${NC}"; exit 1
-elif [[ $(file -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
+elif [[ $(file -S -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
 	echo -e "${red}Error: You haven't specified a valid deb package${NC}"; exit 1
 fi
 
