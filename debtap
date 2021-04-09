@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-#	Copyright 2014-2020 George Savvidis
+#	Copyright 2014-2021 George Savvidis
 
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Version=3.4
+Version=3.4.2
 
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
@@ -126,7 +126,7 @@ elif [[ "${@: -1}" == "debtap" ]] || [[ "${@: -1}" =~ /debtap$ ]] || [[ "${@: -1
 	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --help        Print this help message\n    -u  --update      Update debtap database\n    -q  --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Quiet       Bypass all questions (not recommended)\n    -s  --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --version     Print version"; exit 1
 elif [[ "${@: -1}" =~ ^(-)+(.)*$ ]] || [[ $(ls "${@: -1}" &> /dev/null; echo $?) != 0 ]]; then
 	echo -e "${red}Error: No such file or directory or invalid option${NC}"; exit 1
-elif [[ $(file -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
+elif [[ $(file -S -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
 	echo -e "${red}Error: You haven't specified a valid deb package${NC}"; exit 1
 fi
 
