@@ -138,9 +138,32 @@ if [[ ! $(ls /var/cache/pkgfile/*.files 2> /dev/null) ]] || [[ ! $(ls /var/cache
 	fi
 fi
 
+tar_extract_cmd() {
+	local file=$1
+	local flags
+	case "$file" in
+		*.tar)      flags="" ;;
+		*.tar.gz)   flags="z" ;;
+		*.tar.xz)   flags="J" ;;
+		*.tar.bz2)  flags="j" ;;
+		*.tar.lzma) flags="J" ;;
+		*.tar.zst)  flags="I unzstd"
+			if ! which unzstd >/dev/null; then
+				echo -e "${red}Error: extracting $file requires unzstd${NC}" >&2
+				return 1
+			fi
+			;;
+		*)
+			echo -e "${red}Error: Don't know how to extract '$file'${NC}" >&2
+			return 1
+			;;
+	esac
+	echo "tar -x$flags"
+}
+
 # Defining package with full path & defining and creating working directory
 package_with_full_path="`readlink -f "${@: -1}"`"
-working_directory="`basename "${@: -1}" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb$//'`-working-directory"
+working_directory="`pwd`/`basename "${@: -1}" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb$//'`-working-directory"
 rm -rf "$working_directory" 2> /dev/null
 mkdir "$working_directory" 2> /dev/null
 if [[ $(echo $?) != 0 ]]; then
@@ -151,31 +174,27 @@ cd "$working_directory"
 
 # Extracting package data and metadata in working directory (also checking package architecture, if you are running the pseudo option)
 echo -e "${lightgreen}==>${NC} ${bold}Extracting package data...${normal}"
-control_tar_check=`ar t "$package_with_full_path" | grep control`
-if [[ $control_tar_check == control.tar.gz ]]; then
-    ar p "$package_with_full_path" control.tar.gz | tar xz
-elif [[ $control_tar_check == control.tar.xz ]]; then
-    ar p "$package_with_full_path" control.tar.xz | tar xJ
+control_tar_check=$(ar t "$package_with_full_path" | grep -m 1 "control\.tar")
+control_extract=$(tar_extract_cmd "$control_tar_check")
+if [ $? != 0 ]; then
+    rm -rf "$working_directory"
+    exit 1
 fi
+ar p "$package_with_full_path" "$control_tar_check" | $control_extract
+
 if [[ $pseudo == set ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) != 0 ]]; then
     echo -e "${red}Error: Invalid package architecture. Removing extracted package data and exiting...${NC}"
-    cd ..
     rm -rf "$working_directory"
     exit 1
 fi
 rm -rf $(ls * | grep -v 'control\|preinst\|postinst\|prerm\|postrm\|conffiles')
-data_tar_check=`ar t "$package_with_full_path" | grep data`
-if [[ $data_tar_check == data.tar.gz ]]; then
-    ar p "$package_with_full_path" data.tar.gz | tar xz
-elif [[ $data_tar_check == data.tar.xz ]]; then
-    ar p "$package_with_full_path" data.tar.xz | tar xJ
-elif [[ $data_tar_check == data.tar.bz2 ]]; then
-    ar p "$package_with_full_path" data.tar.bz2 | tar xj
-elif [[ $data_tar_check == data.tar.lzma ]]; then
-    ar p "$package_with_full_path" data.tar.lzma | tar xJ
-elif [[ $data_tar_check == data.tar ]]; then
-    ar p "$package_with_full_path" data.tar | tar x
+data_tar_check=$(ar t "$package_with_full_path" | grep -m 1 "data\.tar")
+data_extract=$(tar_extract_cmd "$data_tar_check")
+if [ $? != 0 ]; then
+    rm -rf "$working_directory"
+    exit 1
 fi
+ar p "$package_with_full_path" "$data_tar_check" | $data_extract
 
 # Fixing possible differences in filesystem hierarchy of the extracted package data, so that it matches Arch Linux filesystem hierarchy
 echo -e "${lightgreen}==>${NC} ${bold}Fixing possible directories structure differencies...${normal}"
@@ -3175,7 +3194,6 @@ fi
 if [[ $pkgbuild != set ]] && [[ $Pkgbuild != set ]]; then
 	# Removing leftover files
 	echo -e "${lightgreen}==>${NC} ${bold}Removing leftover files...${normal}"
-	cd ..
 	rm -rf "$working_directory"
 	rm -rf /tmp/debtap
 	exit 0
@@ -3303,17 +3321,7 @@ else
 	echo "sha512sums=('$(sha512sum "$package_with_full_path" | gawk '{print $1}')')" >> PKGBUILD
 fi
 echo -e "\npackage(){\n\n	# Extract package data" >> PKGBUILD
-if [[ $data_tar_check == data.tar.gz ]]; then
-    echo "	tar xzf data.tar.gz -C \"\${pkgdir}\"" >> PKGBUILD
-elif [[ $data_tar_check == data.tar.xz ]]; then
-    echo "	tar xf data.tar.xz -C \"\${pkgdir}\"" >> PKGBUILD
-elif [[ $data_tar_check == data.tar.bz2 ]]; then
-    echo "	tar xf data.tar.bz2 -C \"\${pkgdir}\"" >> PKGBUILD
-elif [[ $data_tar_check == data.tar.lzma ]]; then
-    echo "	tar xf data.tar.lzma -C \"\${pkgdir}\"" >> PKGBUILD
-elif [[ $data_tar_check == data.tar ]]; then
-    echo "	tar xf data.tar -C \"\${pkgdir}\"" >> PKGBUILD 
-fi
+echo "	$data_extract -f $data_tar_check -C \"\${pkgdir}\"" >> PKGBUILD
 if [[ -e pkgbuildinstallations1 ]] || [[ -e pkgbuildinstallations2 ]] || [[ -e pkgbuildinstallations32 ]] || [[ -e pkgbuildinstallations64 ]]; then
 	if [[ $(grep '^install' pkgbuildinstallations1 2> /dev/null | wc -l) != $(echo $(($(cat pkgbuildinstallations1 2> /dev/null | wc -l) + $(cat pkgbuildinstallations2 2> /dev/null | wc -l) + $(cat pkgbuildinstallations32 2> /dev/null | wc -l) + $(cat pkgbuildinstallations64 2> /dev/null | wc -l)))) ]]; then
 		echo -e "\n	# Fix directory structure differences\n	cd \"\${pkgdir}\"" >> PKGBUILD
@@ -3374,7 +3382,6 @@ rm -rf "../$pkgname" 2> /dev/null
 mkdir "../$pkgname" 2> /dev/null
 if [[ $(echo $?) != 0 ]]; then
 	echo -e "${red}Error: Cannot create PKGBUILD directory, permission denied. Removing leftover files and exiting...${NC}"
-	cd ..
 	rm -rf "$working_directory"
 	rm -rf /tmp/debtap
 	exit 1
@@ -3391,7 +3398,6 @@ fi
 
 # Removing leftover files
 echo -e "${lightgreen}==>${NC} ${bold}Removing leftover files...${normal}"
-cd ..
 rm -rf "$working_directory"
 rm -rf /tmp/debtap
 exit 0
