@@ -15,7 +15,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Version=3.5.0
+Version=3.5.1
 
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
@@ -447,7 +447,7 @@ fi
 if [[ $(echo `grep -v ":\| \." control` | grep -iq "`grep -i ^Description: control | sed s'/^Description: //i' | sed s'/\.//'`"; echo $?) == 0 ]]; then
     description=$(echo $(echo "`grep -v ":\| \." control`") | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
 else
-    description=$(echo $(echo "`grep -i ^Description: control | sed s'/^Description: //i' | sed 's/.*/\u&/'`" | sed s'/\.//'). `grep -v ":\| \." control` | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
+    description=$(echo $(echo "`grep -i ^Description: control | sed s'/^Description: //i' | sed 's/.*/\u&/'`" | sed s'/\.//'). `grep -v ":\| \." control` | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g' | sed s'/\!\./\!/g' | sed s'/\?\./\?/g')
 fi
 echo "pkgdesc = $description" >> .PKGINFO
 
