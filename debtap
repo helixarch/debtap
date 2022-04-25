@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-#	Copyright 2014-2021 George Savvidis
+#	Copyright 2014-2022 George Savvidis
 
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Version=3.4.2
+Version=3.5.0
 
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
@@ -82,24 +82,24 @@ elif [[ $update == set ]]; then
             elif [[ "$(uname -m)" == "aarch64" ]]; then
                 _arch=arm64
             fi
-            ubuntu_latest_stable_version=`curl -s https://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 3'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g'`
-            curl -C - -f http://ftp.debian.org/debian/dists/sid/main/Contents-$_arch.gz > /var/cache/debtap/debian-main-packages-files.gz
+            ubuntu_latest_stable_version=`curl -k -s https://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 3'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g'`
+            curl -k -C - -f http://ftp.debian.org/debian/dists/sid/main/Contents-$_arch.gz > /var/cache/debtap/debian-main-packages-files.gz
             gzip -df /var/cache/debtap/debian-main-packages-files.gz
-            curl -C - -f http://ftp.debian.org/debian/dists/sid/non-free/Contents-$_arch.gz > /var/cache/debtap/debian-non-free-packages-files.gz
+            curl -k -C - -f http://ftp.debian.org/debian/dists/sid/non-free/Contents-$_arch.gz > /var/cache/debtap/debian-non-free-packages-files.gz
             gzip -df /var/cache/debtap/debian-non-free-packages-files.gz
-            curl -C - -f http://ftp.debian.org/debian/dists/sid/contrib/Contents-$_arch.gz > /var/cache/debtap/debian-contrib-packages-files.gz
+            curl -k -C - -f http://ftp.debian.org/debian/dists/sid/contrib/Contents-$_arch.gz > /var/cache/debtap/debian-contrib-packages-files.gz
             gzip -df /var/cache/debtap/debian-contrib-packages-files.gz
             if [[ $_arch == amd64 ]]; then
-                curl -C - -f http://archive.ubuntu.com/ubuntu/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
+                curl -k -C - -f http://archive.ubuntu.com/ubuntu/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
             else
-                curl -C - -f http://ports.ubuntu.com/ubuntu-ports/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
+                curl -k -C - -f http://ports.ubuntu.com/ubuntu-ports/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
             fi
             gzip -df /var/cache/debtap/ubuntu-packages-files.gz
             if [[ $(echo $?) != 0 ]]; then
                 echo -e "${red}Synchronization failed. Exiting...${NC}"; exit 1
             else
                 echo -e "${lightgreen}==>${NC} ${bold}Downloading latest virtual packages list...${normal}"
-                curl -L https://github.com/helixarch/virtual-packages-list-generator/archive/master.tar.gz > /var/cache/debtap/master.tar.gz
+                curl -k -L https://github.com/helixarch/virtual-packages-list-generator/archive/master.tar.gz > /var/cache/debtap/master.tar.gz
                 tar xfz /var/cache/debtap/master.tar.gz -C /var/cache/debtap
                 mv /var/cache/debtap/virtual-packages-list-generator-master/virtual-packages /var/cache/debtap
                 rm -rf /var/cache/debtap/master.tar.gz /var/cache/debtap/virtual-packages-list-generator-master
@@ -107,7 +107,7 @@ elif [[ $update == set ]]; then
                     echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
                 else
                     echo -e "${lightgreen}==>${NC} ${bold}Downloading latest AUR packages list...${normal}"
-                    curl -C - -f https://aur.archlinux.org/packages.gz > /var/cache/debtap/aur-packages.gz
+                    curl -k -C - -f https://aur.archlinux.org/packages.gz > /var/cache/debtap/aur-packages.gz
                     gzip -df /var/cache/debtap/aur-packages.gz
                     if [[ $(echo $?) != 0 ]]; then
                         echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
@@ -139,7 +139,7 @@ if [[ ! $(ls /var/cache/pkgfile/*.files 2> /dev/null) ]] || [[ ! $(ls /var/cache
 fi
 
 tar_extract_cmd() {
-	local file=$1
+	local file="${@: -1}"
 	local flags
 	case "$file" in
 		*.tar)      flags="" ;;
@@ -187,6 +187,7 @@ if [[ $pseudo == set ]] && [[ $(grep ^Architecture: control | grep -q i386; echo
     rm -rf "$working_directory"
     exit 1
 fi
+
 rm -rf $(ls * | grep -v 'control\|preinst\|postinst\|prerm\|postrm\|conffiles')
 data_tar_check=$(ar t "$package_with_full_path" | grep -m 1 "data\.tar")
 data_extract=$(tar_extract_cmd "$data_tar_check")
@@ -200,62 +201,62 @@ ar p "$package_with_full_path" "$data_tar_check" | $data_extract
 echo -e "${lightgreen}==>${NC} ${bold}Fixing possible directories structure differencies...${normal}"
 if [[ $pkgbuild == set ]] || [[ $Pkgbuild == set ]]; then
 	if [[ $(find ./ -iname '*license*' | wc -l) != 0 ]]; then
-		echo "install -D -m644 \"$(find ./ -iname '*license*' | sort | tail -1 | sed s'/^\.//')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE\"" >> pkgbuildinstallations1
+		echo "install -D -m644 \"$(find ./ -iname '*license*' | sort | tail -1 | sed s'/^\.\///')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE\"" >> pkgbuildinstallations1
 	fi
 	if [[ $(find ./ -iname '*copyright*' | wc -l) != 0 ]]; then
 		if [[ $(find ./ -iname '*license*' | wc -l) != 0 ]]; then
-			echo "install -D -m644 \"$(find ./ -iname '*copyright*' | sort | tail -1 | sed s'/^\.//')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/COPYRIGHT\"" >> pkgbuildinstallations1
+			echo "install -D -m644 \"$(find ./ -iname '*copyright*' | sort | tail -1 | sed s'/^\.\///')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/COPYRIGHT\"" >> pkgbuildinstallations1
 		else
-			echo "install -D -m644 \"$(find ./ -iname '*copyright*' | sort | tail -1 | sed s'/^\.//')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE\"" >> pkgbuildinstallations1
+			echo "install -D -m644 \"$(find ./ -iname '*copyright*' | sort | tail -1 | sed s'/^\.\///')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE\"" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ $(find ./ -iname '*eula*' | wc -l) != 0 ]]; then
 		if [[ $(find ./ -iname '*license*' | wc -l) != 0 ]] || [[ $(find ./ -iname '*copyright*' | wc -l) != 0 ]]; then
-			echo "install -D -m644 \"$(find ./ -iname '*eula*' | sort | tail -1 | sed s'/^\.//')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/EULA\"" >> pkgbuildinstallations1
+			echo "install -D -m644 \"$(find ./ -iname '*eula*' | sort | tail -1 | sed s'/^\.\///')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/EULA\"" >> pkgbuildinstallations1
 		else
-			echo "install -D -m644 \"$(find ./ -iname '*eula*' | sort | tail -1 | sed s'/^\.//')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE\"" >> pkgbuildinstallations1
+			echo "install -D -m644 \"$(find ./ -iname '*eula*' | sort | tail -1 | sed s'/^\.\///')\" \"\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE\"" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e usr/games ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/games/* usr/bin; rm -rf usr/games' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/games\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\/usr\/games\//Exec=\/usr\/bin\//g' \"\$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e bin ]]; then
 		echo 'mkdir -p usr/bin 2> /dev/null; mv bin/* usr/bin; rm -rf bin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/bin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\/bin\//Exec=\/usr\/bin\//g' \"\$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e sbin ]]; then
 		echo 'mkdir -p usr/bin 2> /dev/null; mv sbin/* usr/bin; rm -rf sbin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/sbin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\/sbin\//Exec=\/usr\/bin\//g' \"\$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e usr/sbin ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/sbin/* usr/bin; rm -rf usr/sbin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/sbin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\/usr\/sbin\//Exec=\/usr\/bin\//g' \"\$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e usr/local/games ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/local/games/* usr/bin; rm -rf usr/local/games' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/local\\/games\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\/usr\/local\/games\//Exec=\/usr\/bin\//g' \"\$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e usr/local/bin ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/local/bin/* usr/bin; rm -rf usr/local/bin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/local\\/bin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\/usr\/local\/bin\//Exec=\/usr\/bin\//g' \"\$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ -e usr/local/sbin ]]; then
 		echo 'mkdir usr/bin 2> /dev/null; mv usr/local/sbin/* usr/bin; rm -rf usr/local/sbin' >> pkgbuildinstallations1
 		if [[ -e usr/share/applications ]]; then
-			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\\/usr\\/local\\/sbin\\//Exec=\\/usr\\/bin\\//g' \"$line\"\ndone" >> pkgbuildinstallations1
+			echo -e "ls usr/share/applications/*.desktop | while read line; do\n\tsed -i s'/^Exec=\/usr\/local\/sbin\//Exec=\/usr\/bin\//g' \"\$line\"\ndone" >> pkgbuildinstallations1
 		fi
 	fi
 	if [[ $pseudo != set ]]; then
@@ -462,7 +463,7 @@ if [[ $quiet == set ]] || [[ $Quiet == set ]]; then
 else
     source /usr/share/makepkg/util/config.sh
     load_makepkg_config
-    echo -e "\n${lightblue}::${NC} Enter Packager name:"
+    echo -e "\n${lightblue}::${NC} Enter Packager name (can be left blank):"
     read -e -i "${PACKAGER}" packager_name
     echo "packager = $packager_name" >> .PKGINFO
 fi
@@ -526,7 +527,7 @@ echo "size =" $((`du -sb | tr -d " ."` - `ls -l | grep control | gawk '{print $5
 if [[ $quiet == set ]] || [[ $Quiet == set ]]; then
     echo "license = custom" >> .PKGINFO
 else
-    echo -e "\n${lightblue}::${NC} Enter package license (you can enter multiple licenses comma separated):"
+    echo -e "\n${lightblue}::${NC} Enter package license (can be left blank, you can enter multiple licenses comma separated):"
     read package_license
     for i in `echo "$package_license" | sed -e s'/ /__/g' -e s'/,/ /g'`; do
 		license+=($i)
@@ -2998,7 +2999,7 @@ if [[ -e preinst ]]; then
 		sed -i -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/.*install.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' preinst
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*install.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' preinst
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' preinst | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' preinst | while read -r line; do
 	printf '\t%s\n' "$line" >> tempfile1
 	done
 fi
@@ -3021,7 +3022,7 @@ if [[ -e postinst ]]; then
 		sed -i -e '/.*configure.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' postinst
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*configure.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postinst
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternative\|--slave\|db_\|remove_source\|update_manager\|lintian' postinst | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|update-alternative\|--slave\|db_\|remove_source\|update_manager\|lintian' postinst | while read -r line; do
 		printf '\t%s\n' "$line" >> tempfile1
 	done
 fi
@@ -3054,7 +3055,7 @@ if [[ -e prerm ]]; then
 		sed -i -e '/.*remove.*)[[:blank:]]\{0,\}$/d' -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' prerm
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' prerm
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' prerm | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' prerm | while read -r line; do
 		printf '\t%s\n' "$line" >> tempfile1
 	done
 fi
@@ -3072,12 +3073,12 @@ fi
 if [[ -e postrm ]]; then
 	sed -i -e '/how this script works/,/debian-policy/d' -e '/how this script works/,/version>/d' -e '/dh_installdeb/,/DEBHELPER/d' postrm
 	if [[ $(grep -c "case in \$1\|case in \${1}\|case in \"\$1\"\|case in \"\${1}\"\|case \$1 in\|case \${1} in\|case \"\$1\" in\|case \"\${1}\" in" postrm) == $(grep -c "case " postrm) ]]; then
-		sed -i -e '/case in \$1/,/remove/{/remove/!d}' -e '/case in {1}/,/remove/{/remove/!d}' -e '/case in "\$1"/,/remove/{/remove/!d}' -e '/case in "{1}"/,/remove/{/remove/!d}' -e '/case \$1 in/,/remove/{/remove/!d}' -e '/case {1} in/,/remove/{/remove/!d}' -e '/case "\$1" in/,/remove/{/remove/!d}' -e '/case "{1}" in/,/remove/{/remove/!d}' -e '/case in \$1/,/purge/{/purge/!d}' -e '/case in {1}/,/purge/{/purge/!d}' -e '/case in "\$1"/,/purge/{/purge/!d}' -e '/case in "{1}"/,/purge/{/purge/!d}' -e '/case \$1 in/,/purge/{/purge/!d}' -e '/case {1} in/,/purge/{/purge/!d}' -e '/case "\$1" in/,/purge/{/purge/!d}' -e '/case "{1}" in/,/purge/{/purge/!d}' -e '/case in \$1/,/upgrade/{/upgrade/!d}' -e '/case in \${1}/,/upgrade/{/upgrade/!d}' -e '/case in "\$1"/,/upgrade/{/upgrade/!d}' -e '/case in "\${1}"/,/upgrade/{/upgrade/!d}' -e '/case \$1 in/,/upgrade/{/upgrade/!d}' -e '/case \${1} in/,/upgrade/{/upgrade/!d}' -e '/case "\$1" in/,/upgrade/{/upgrade/!d}' -e '/case "\${1}" in/,/upgrade/{/upgrade/!d}' -e '/case in \$1/,/update-alternatives/{/update-alternatives/!d}' -e '/case in {1}/,/update-alternatives/{/update-alternatives/!d}' -e '/case in "\$1"/,/update-alternatives/{/update-alternatives/!d}' -e '/case in "{1}"/,/update-alternatives/{/update-alternatives/!d}' -e '/case \$1 in/,/update-alternatives/{/update-alternatives/!d}' -e '/case {1} in/,/update-alternatives/{/upda..te-alternatives/!d}' -e '/case "\$1" in/,/update-alternatives/{/update-alternatives/!d}' -e '/case "{1}" in/,/update-alternatives/{/update-alternatives/!d}' -e '/case in \$1/,/db_/{/db_/!d}' -e '/case in {1}/,/db_/{/db_/!d}' -e '/case in "\$1"/,/db_/{/db_/!d}' -e '/case in "{1}"/,/db_/{/db_/!d}' -e '/case \$1 in/,/db_/{/db_/!d}' -e '/case {1} in/,/db_/{/db_/!d}' -e '/case "\$1" in/,/db_/{/db_/!d}' -e '/case "{1}" in/,/db_/{/db_/!d}' -e '/;;/,/esac/{/;;/!d}' postrm
+		sed -i -e '/case in \$1/,/remove/{/remove/!d}' -e '/case in {1}/,/remove/{/remove/!d}' -e '/case in "\$1"/,/remove/{/remove/!d}' -e '/case in "{1}"/,/remove/{/remove/!d}' -e '/case \$1 in/,/remove/{/remove/!d}' -e '/case {1} in/,/remove/{/remove/!d}' -e '/case "\$1" in/,/remove/{/remove/!d}' -e '/case "{1}" in/,/remove/{/remove/!d}' -e '/case in \$1/,/purge/{/purge/!d}' -e '/case in {1}/,/purge/{/purge/!d}' -e '/case in "\$1"/,/purge/{/purge/!d}' -e '/case in "{1}"/,/purge/{/purge/!d}' -e '/case \$1 in/,/purge/{/purge/!d}' -e '/case {1} in/,/purge/{/purge/!d}' -e '/case "\$1" in/,/purge/{/purge/!d}' -e '/case "{1}" in/,/purge/{/purge/!d}' -e '/case in \$1/,/upgrade/{/upgrade/!d}' -e '/case in \${1}/,/upgrade/{/upgrade/!d}' -e '/case in "\$1"/,/upgrade/{/upgrade/!d}' -e '/case in "\${1}"/,/upgrade/{/upgrade/!d}' -e '/case \$1 in/,/upgrade/{/upgrade/!d}' -e '/case \${1} in/,/upgrade/{/upgrade/!d}' -e '/case "\$1" in/,/upgrade/{/upgrade/!d}' -e '/case "\${1}" in/,/upgrade/{/upgrade/!d}' -e '/case in \$1/,/update-alternatives/{/update-alternatives/!d}' -e '/case in {1}/,/update-alternatives/{/update-alternatives/!d}' -e '/case in "\$1"/,/update-alternatives/{/update-alternatives/!d}' -e '/case in "{1}"/,/update-alternatives/{/update-alternatives/!d}' -e '/case \$1 in/,/update-alternatives/{/update-alternatives/!d}' -e '/case {1} in/,/update-alternatives/{/updaste-alternatives/!d}' -e '/case "\$1" in/,/update-alternatives/{/update-alternatives/!d}' -e '/case "{1}" in/,/update-alternatives/{/update-alternatives/!d}' -e '/case in \$1/,/db_/{/db_/!d}' -e '/case in {1}/,/db_/{/db_/!d}' -e '/case in "\$1"/,/db_/{/db_/!d}' -e '/case in "{1}"/,/db_/{/db_/!d}' -e '/case \$1 in/,/db_/{/db_/!d}' -e '/case {1} in/,/db_/{/db_/!d}' -e '/case "\$1" in/,/db_/{/db_/!d}' -e '/case "{1}" in/,/db_/{/db_/!d}' -e '/;;/,/esac/{/;;/!d}' postrm
 		sed -i -e '/[[:blank:]]\{0,\}update-alternatives.*)/,/esac/d' -e '/[[:blank:]]\{0,\}db_.*)/,/esac/d' -e '/[[:blank:]]\{0,\}db_.*)/,/update-alternatives/d' -e '/[[:blank:]]\{0,\}lintian.*/,/}/d' -e '/[[:blank:]]\{0,\}if.*update-app-install.*/,/fi/d' -e '/[[:blank:]]\{0,\}if.*update-software-center.*/,/fi/d' -e '/[[:blank:]]\{0,\}if.*RET.*/,/fi/d' -e '/.*\*)[[:blank:]]\{0,\}/,/esac/d' postrm
 		sed -i -e '/.*remove.*)[[:blank:]]\{0,\}$/d' -e '/.*purge.*)[[:blank:]]\{0,\}$/d' -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' postrm
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1,/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*purge.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postrm
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|abort\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' postrm | while read -r line; do
+	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|update-alternatives\|--slave\|db_\|remove_source\|update_manager\|lintian' postrm | while read -r line; do
 		printf '\t%s\n' "$line" >> tempfile1
 	done
 fi
@@ -3329,43 +3330,43 @@ if [[ -e pkgbuildinstallations1 ]] || [[ -e pkgbuildinstallations2 ]] || [[ -e p
 fi
 if [[ -e pkgbuildinstallations1 ]]; then
 	echo >> PKGBUILD
-	cat pkgbuildinstallations1 | while read line; do
+	cat pkgbuildinstallations1 | while read -r line; do
 		echo -e "	$line" >> PKGBUILD
 	done
 fi
 if [[ $(grep -q "^arch=('i686' 'x86_64')$" PKGBUILD; echo $?) == 0 ]]; then
 	if [[ -e pkgbuildinstallations32 ]] && [[ -e pkgbuildinstallations64 ]]; then
 		echo -e "\n	if [[ \${CARCH} == i686 ]]; then" >> PKGBUILD
-		cat pkgbuildinstallations32 | while read line; do
+		cat pkgbuildinstallations32 | while read -r line; do
 			echo "		$line" >> PKGBUILD
 		done
 		echo "	elif [[ \${CARCH} == x86_64 ]]; then" >> PKGBUILD
-		cat pkgbuildinstallations64 | while read line; do
+		cat pkgbuildinstallations64 | while read -r line; do
 			echo "		$line" >> PKGBUILD
 		done
 		echo "	fi" >> PKGBUILD
 	elif [[ -e pkgbuildinstallations32 ]] && [[ ! -e pkgbuildinstallations64 ]]; then
 		echo -e "\n	if [[ \${CARCH} == i686 ]]; then" >> PKGBUILD
-		cat pkgbuildinstallations32 | while read line; do
+		cat pkgbuildinstallations32 | while read -r line; do
 			echo "		$line" >> PKGBUILD
 		done
 		echo "	fi" >> PKGBUILD
 	elif [[ ! -e pkgbuildinstallations32 ]] && [[ -e pkgbuildinstallations64 ]]; then
 		echo -e "\n	if [[ \${CARCH} == x86_64 ]]; then" >> PKGBUILD
-		cat pkgbuildinstallations64 | while read line; do
+		cat pkgbuildinstallations64 | while read -r line; do
 			echo "		$line" >> PKGBUILD
 		done
 		echo "	fi" >> PKGBUILD
 	fi
 elif [[ $(grep -q "^arch=('x86_64')$" PKGBUILD; echo $?) == 0 ]] && [[ -e pkgbuildinstallations64 ]]; then
 	echo >> PKGBUILD
-	cat pkgbuildinstallations64 | while read line; do
+	cat pkgbuildinstallations64 | while read -r line; do
 		echo -e "	$line" >> PKGBUILD
 	done
 fi
 if [[ -e pkgbuildinstallations2 ]]; then
 	echo >> PKGBUILD
-	cat pkgbuildinstallations2 | while read line; do
+	cat pkgbuildinstallations2 | while read -r line; do
 		echo -e "	$line" >> PKGBUILD
 	done
 fi
