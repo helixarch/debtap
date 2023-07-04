@@ -545,9 +545,9 @@ echo -e "\n${lightgreen}***${NC} ${bold}Creation of .PKGINFO file in progress. I
 # The packages names translator function
 packages-names-translator() {
 # First method of translating .deb packages names into Arch Linux packages names, more accurate, comparing contents of .deb packages with Arch Linux packages contents
-for debian_package_name in $(gawk '{print $1}' `ls | grep initial-check-list`); do
-	for debian_package_file in `grep "\/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
-		echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " `ls | grep initial-check-list` | gawk '{print $2}')
+for debian_package_name in $(gawk '{print $1}' $(ls | grep initial-check-list)); do
+	for debian_package_file in $(grep "/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
+		echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " $(ls | grep initial-check-list) | gawk '{print $2}')
 	done >> $debian_package_name-tempfile03
 done
 
@@ -604,7 +604,7 @@ done
 # Second method of translating remaining untranslated .deb packages names into Arch Linux packages names, same as first method, but searches in Ubuntu database for packages contents instead of Debian database
 if [[ -e untranslated-names-only ]]; then
     for ubuntu_package_name in $(sort -u untranslated-names-only); do
-		for ubuntu_package_file in `grep "\/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
+		for ubuntu_package_file in $(grep "/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
 			echo $ubuntu_package_file $(grep "^$ubuntu_package_name$\|^$ubuntu_package_name " untranslated | gawk '{print $2}')
 		done >> $ubuntu_package_name-tempfile08
     done
