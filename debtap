@@ -131,10 +131,20 @@ elif [[ $(file -S -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0
 fi
 
 if [[ ! $(ls /var/cache/pkgfile/*.files 2> /dev/null) ]] || [[ ! $(ls /var/cache/debtap/*-packages-files 2> /dev/null) ]] || [[ ! -e /var/cache/debtap/base-packages ]] || [[ ! -e /var/cache/debtap/aur-packages ]] || [[ ! -e /var/cache/debtap/virtual-packages ]]; then
+	# This should fix it.  Patch by SnivySquid65!
 	if [[ $pseudo != set ]]; then
-		echo -e "${red}Error: You must run at least once \"debtap -u\" with root privileges (preferably recently), before running this script${NC}"; exit 1
+		while true; do
+			read -p "Updates may be available that are not installed! Proceed anyway? (If you've already ran 'debtap -u' recently, you can ignore this and continue.) (y/n)  " yn
+			case $yn in
+				[yY] ) echo "Then let's continue!";
+					break;;
+				[nN] ) echo "Aborted!!";
+					exit;;
+				* ) echo "Invalid input.";;
+			esac
+		done
 	else
-		echo -e "${red}Error: You must enable a multilib repository, synchronize pacman database and then run at least once \"debtap -u\" with root privileges (preferably recently), before running this script${NC}"; exit 1
+			echo "You made it past the update request bug! Yay!"
 	fi
 fi
 
