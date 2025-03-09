@@ -394,7 +394,7 @@ echo -e "${lightgreen}==>${NC} ${bold}Generating .PKGINFO file...${normal}"
 
 # Generating pkgname field
 if [[ $pseudo == set ]] && [[ $(ls -A usr/lib32 2> /dev/null) ]] && [[ ! $(ls -A usr/bin 2> /dev/null) ]]; then
-	for i in {git,bzr,darcs,hg}; do
+	for i in git bzr darcs hg; do
 		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
 			echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
 		fi
@@ -402,7 +402,7 @@ if [[ $pseudo == set ]] && [[ $(ls -A usr/lib32 2> /dev/null) ]] && [[ ! $(ls -A
 	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q svn; echo $?) == 0 ]]; then
 		echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
 	fi
-	for i in {cvs,CVS}; do
+	for i in cvs CVS; do
 		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
 			echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
 		fi
@@ -411,7 +411,7 @@ if [[ $pseudo == set ]] && [[ $(ls -A usr/lib32 2> /dev/null) ]] && [[ ! $(ls -A
 		echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`" | sed s'/--/-/g' > .PKGINFO
 	fi
 else
-	for i in {git,bzr,darcs,hg}; do
+	for i in git bzr darcs hg; do
 		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
 			echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
 		fi
@@ -419,7 +419,7 @@ else
 	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q svn; echo $?) == 0 ]]; then
 		echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
 	fi
-	for i in {cvs,CVS}; do
+	for i in cvs CVS; do
 		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
 			echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
 		fi
@@ -431,12 +431,12 @@ fi
 
 # Generating pkgver field
 version=$(grep -i ^Version: control | gawk '{print $2}' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\././g' | sed s'/\.$//')
-for i in {git,bzr,darcs,hg}; do
+for i in git bzr darcs hg; do
     if [[ $(echo $version | grep -q $i; echo $?) == 0 ]]; then
 		echo "pkgver = `echo $version | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`"-1 >> .PKGINFO
     fi
 done
-for i in {svn.r,svnr}; do
+for i in svn.r svnr; do
     if [[ $(echo $version | grep -q $i; echo $?) == 0 ]]; then
 		echo "pkgver = r`echo $version | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`"-1 >> .PKGINFO
     fi
@@ -444,7 +444,7 @@ done
 if [[ $(echo $version | grep -q svn; echo $?) == 0 ]] && [[ $(echo $version | grep -q "svn\.r\|svnr"; echo $?) != 0 ]]; then
     echo "pkgver = `echo $version | gawk -F 'svn' '{print $2}' | gawk -F '-' '{print $1}'`"-1 >> .PKGINFO
 fi
-for i in {cvs,CVS}; do
+for i in cvs CVS; do
     if [[ $(echo $version | grep -q $i; echo $?) == 0 ]]; then
 		echo "pkgver = `echo $version | sed -e s"/[-.]$i/ /g" -e s"/$i/ /g" -e s"/-/ /g" | gawk '{print $2}'`"-1 >> .PKGINFO
     fi
@@ -555,9 +555,9 @@ echo -e "\n${lightgreen}***${NC} ${bold}Creation of .PKGINFO file in progress. I
 # The packages names translator function
 packages-names-translator() {
 # First method of translating .deb packages names into Arch Linux packages names, more accurate, comparing contents of .deb packages with Arch Linux packages contents
-for debian_package_name in $(gawk '{print $1}' `ls | grep initial-check-list`); do
-	for debian_package_file in `grep "\/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
-		echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " `ls | grep initial-check-list` | gawk '{print $2}')
+for debian_package_name in $(gawk '{print $1}' $(ls | grep initial-check-list)); do
+	for debian_package_file in $(grep "/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
+		echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " $(ls | grep initial-check-list) | gawk '{print $2}')
 	done >> $debian_package_name-tempfile03
 done
 
@@ -614,7 +614,7 @@ done
 # Second method of translating remaining untranslated .deb packages names into Arch Linux packages names, same as first method, but searches in Ubuntu database for packages contents instead of Debian database
 if [[ -e untranslated-names-only ]]; then
     for ubuntu_package_name in $(sort -u untranslated-names-only); do
-		for ubuntu_package_file in `grep "\/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
+		for ubuntu_package_file in $(grep "/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
 			echo $ubuntu_package_file $(grep "^$ubuntu_package_name$\|^$ubuntu_package_name " untranslated | gawk '{print $2}')
 		done >> $ubuntu_package_name-tempfile08
     done
@@ -2634,7 +2634,7 @@ if [[ -e new-untranslated-names-only ]]; then
 	fi
 
 	if [[ -e matches ]] && [[ $(grep ^pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' | grep -q "^$(head -1 matches)$"; echo $?) != 0 ]]; then
-	    for t in {svn,git,cvs,bzr,darcs,hg}; do
+	    for t in svn git cvs bzr darcs hg; do
 		if [[ $(echo "$i" | grep -q "\-$t$"; echo $?) == 0 ]]; then
 		    grep "^$i$\|^$i " new-untranslated | sed s"/^$i/$(head -1 matches)-$t/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 		fi
@@ -2713,12 +2713,12 @@ done
 
 # Special rules for version control systems
 cat tempfile13 | while read line; do
-    for i in {git,bzr,darcs,hg}; do
+    for i in git bzr darcs hg; do
 		if [[ $(echo "$line" | gawk '{print $3}' | grep -q $i; echo $?) == 0 ]]; then
 			echo "$(echo `echo "$line" | gawk '{print $1}'`-$i | sed s"/-$i-$i$/-$i/") `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`" >> tempfile14
 		fi
     done
-    for i in {svn.r,svnr}; do
+    for i in svn.r svnr; do
 		if [[ $(echo "$line" | gawk '{print $3}' | grep -q $i; echo $?) == 0 ]]; then
 			echo "$(echo `echo "$line" | gawk '{print $1}'`-svn | sed s'/-svn-svn$/-svn/') `echo "$line" | gawk '{print $2}'` r`echo "$line" | gawk '{print $3}' | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`" >> tempfile14
 		fi
@@ -2726,7 +2726,7 @@ cat tempfile13 | while read line; do
     if [[ $(echo "$line" | gawk '{print $3}' | grep -q svn; echo $?) == 0 ]] && [[ $(echo "$line" | gawk '{print $3}' | grep -q "svn\.r\|svnr"; echo $?) != 0 ]]; then
 		echo "$(echo `echo "$line" | gawk '{print $1}'`-svn | sed s'/-svn-svn$/-svn/') `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | gawk -F 'svn' '{print $2}' | gawk -F '-' '{print $1}'`" >> tempfile14
     fi
-    for i in {cvs,CVS}; do
+    for i in cvs CVS; do
 		if [[ $(echo "$line" | gawk '{print $3}' | grep -q $i; echo $?) == 0 ]]; then
 			echo "$(echo `echo "$line" | gawk '{print $1}'`-cvs | sed s'/-cvs-cvs$/-cvs/') `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | sed -e s"/[-.]$i/ /g" -e s"/$i/ /g" -e s"/-/ /g" | gawk '{print $2}'`" >> tempfile14
 		fi
@@ -3133,7 +3133,7 @@ if [[ -e tempfile2 ]]; then
 		sed -i -e s"/'\/bin\//'\/usr\/bin\//g" -e s"/'\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/games\//'\/usr\/bin\//g" -e s"/'\/lib\//'\/usr\/lib32\//g" -e s"/'\/lib32\//'\/usr\/lib32\//g" -e s"/'\/usr\/lib\//'\/usr\/lib32\//g" -e s"/'\/usr\/local\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/local\/games\//'\/usr\/bin\//g" -e s"/'\/usr\/local\/lib\//'\/usr\/lib32\//g" -e s"/'\/usr\/local\//'\/usr\//g" tempfile2
 	fi
 	
-	for i in {upgrade,install,remove,purge,configure}; do
+	for i in upgrade install remove purge configure; do
 		sed -i -e s"/ \[\[ \"\$1\" = \"$i\" \]\] &&\| && \[\[ \"\$1\" = \"$i\" \]\]//g" -e s"/ \[ \"\$1\" = \"$i\" \] &&\| && \[ \"\$1\" = \"$i\" \]//g" -e s"/ \[\[ \"\${1}\" = \"$i\" \]\] &&\| && \[\[ \"\${1}\" = \"$i\" \]\]//g" -e s"/ \[ \"\${1}\" = \"$i\" \] &&\| && \[ \"\${1}\" = \"$i\" \]//g" -e s"/ \[\[ \"\$1\" = $i \]\] &&\| && \[\[ \"\$1\" = $i \]\]//g" -e s"/ \[ \"\$1\" = $i \] &&\| && \[ \"\$1\" = $i \]//g" -e s"/ \[\[ \"\${1}\" = $i \]\] &&\| && \[\[ \"\${1}\" = $i \]\]//g" -e s"/ \[ \"\${1}\" = $i \] &&\| && \[ \"\${1}\" = $i \]//g" tempfile2
 	done
 
