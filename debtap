@@ -23,8 +23,8 @@ lightred='\e[1;31m'
 red='\e[0;31m'
 lightblue='\e[1;34m'
 NC='\e[0m'
-bold=`tput bold`
-normal=`tput sgr0`
+bold=$(tput bold)
+normal=$(tput sgr0)
 
 # Options, help, database update and error messages
 for i in "$@"; do
@@ -82,7 +82,7 @@ elif [[ $update == set ]]; then
             elif [[ "$(uname -m)" == "aarch64" ]]; then
                 _arch=arm64
             fi
-            ubuntu_latest_stable_version=`curl -k -s https://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 3'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g'`
+            ubuntu_latest_stable_version=$(curl -k -s https://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 3'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g')
             curl -k -C - -f http://ftp.debian.org/debian/dists/sid/main/Contents-$_arch.gz > /var/cache/debtap/debian-main-packages-files.gz
             gzip -df /var/cache/debtap/debian-main-packages-files.gz
             curl -k -C - -f http://ftp.debian.org/debian/dists/sid/non-free/Contents-$_arch.gz > /var/cache/debtap/debian-non-free-packages-files.gz
@@ -172,8 +172,8 @@ tar_extract_cmd() {
 }
 
 # Defining package with full path & defining and creating working directory
-package_with_full_path="`readlink -f "${@: -1}"`"
-working_directory="`pwd`/`basename "${@: -1}" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb$//'`-working-directory"
+package_with_full_path="$(readlink -f "${@: -1}")"
+working_directory="$(pwd)/$(basename "${@: -1}" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb$//')-working-directory"
 rm -rf "$working_directory" 2> /dev/null
 mkdir "$working_directory" 2> /dev/null
 if [[ $(echo $?) != 0 ]]; then
@@ -396,36 +396,36 @@ echo -e "${lightgreen}==>${NC} ${bold}Generating .PKGINFO file...${normal}"
 if [[ $pseudo == set ]] && [[ $(ls -A usr/lib32 2> /dev/null) ]] && [[ ! $(ls -A usr/bin 2> /dev/null) ]]; then
 	for i in {git,bzr,darcs,hg}; do
 		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
+			echo "pkgname = lib32-$(grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]')"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
 		fi
 	done
 	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q svn; echo $?) == 0 ]]; then
-		echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
+		echo "pkgname = lib32-$(grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]')"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
 	fi
 	for i in {cvs,CVS}; do
 		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
+			echo "pkgname = lib32-$(grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]')"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
 		fi
 	done
 	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) != 0 ]]; then
-		echo "pkgname = lib32-`grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`" | sed s'/--/-/g' > .PKGINFO
+		echo "pkgname = lib32-$(grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]')" | sed s'/--/-/g' > .PKGINFO
 	fi
 else
 	for i in {git,bzr,darcs,hg}; do
 		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
+			echo "pkgname = $(grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]')"-$i | sed s"/-$i-$i$/-$i/" | sed s'/--/-/g' > .PKGINFO
 		fi
 	done
 	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q svn; echo $?) == 0 ]]; then
-		echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
+		echo "pkgname = $(grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]')"-svn | sed s'/-svn-svn$/-svn/' | sed s'/--/-/g' > .PKGINFO
 	fi
 	for i in {cvs,CVS}; do
 		if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
+			echo "pkgname = $(grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]')"-cvs | sed s'/-cvs-cvs$/-cvs/' | sed s'/--/-/g' > .PKGINFO
 		fi
 	done
 	if [[ $(grep -i ^Version: control | gawk '{print $2}' | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) != 0 ]]; then
-		echo "pkgname = `grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]'`" | sed s'/demo$/-demo/' | sed s'/trial$/-trial/' | sed s'/--/-/g' > .PKGINFO
+		echo "pkgname = $(grep -i ^Package: control | gawk '{print $2}' | tr '[:upper:]' '[:lower:]')" | sed s'/demo$/-demo/' | sed s'/trial$/-trial/' | sed s'/--/-/g' > .PKGINFO
 	fi
 fi
 
@@ -433,39 +433,39 @@ fi
 version=$(grep -i ^Version: control | gawk '{print $2}' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\././g' | sed s'/\.$//')
 for i in {git,bzr,darcs,hg}; do
     if [[ $(echo $version | grep -q $i; echo $?) == 0 ]]; then
-		echo "pkgver = `echo $version | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`"-1 >> .PKGINFO
+		echo "pkgver = $(echo $version | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}')"-1 >> .PKGINFO
     fi
 done
 for i in {svn.r,svnr}; do
     if [[ $(echo $version | grep -q $i; echo $?) == 0 ]]; then
-		echo "pkgver = r`echo $version | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`"-1 >> .PKGINFO
+		echo "pkgver = r$(echo $version | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}')"-1 >> .PKGINFO
     fi
 done
 if [[ $(echo $version | grep -q svn; echo $?) == 0 ]] && [[ $(echo $version | grep -q "svn\.r\|svnr"; echo $?) != 0 ]]; then
-    echo "pkgver = `echo $version | gawk -F 'svn' '{print $2}' | gawk -F '-' '{print $1}'`"-1 >> .PKGINFO
+    echo "pkgver = $(echo $version | gawk -F 'svn' '{print $2}' | gawk -F '-' '{print $1}')"-1 >> .PKGINFO
 fi
 for i in {cvs,CVS}; do
     if [[ $(echo $version | grep -q $i; echo $?) == 0 ]]; then
-		echo "pkgver = `echo $version | sed -e s"/[-.]$i/ /g" -e s"/$i/ /g" -e s"/-/ /g" | gawk '{print $2}'`"-1 >> .PKGINFO
+		echo "pkgver = $(echo $version | sed -e s"/[-.]$i/ /g" -e s"/$i/ /g" -e s"/-/ /g" | gawk '{print $2}')"-1 >> .PKGINFO
     fi
 done
 if [[ $(echo $version | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) != 0 ]]; then
-    echo "pkgver = `echo $version | gawk -F '-[0-9]' '{print $1}' | sed s'/-/./'`"-1 >> .PKGINFO
+    echo "pkgver = $(echo $version | gawk -F '-[0-9]' '{print $1}' | sed s'/-/./')"-1 >> .PKGINFO
 fi
 
 # Generating pkgdesc field
-if [[ $(echo `grep -v ":\| \." control` | grep -iq "`grep -i ^Description: control | sed s'/^Description: //i' | sed s'/\.//'`"; echo $?) == 0 ]]; then
-    description=$(echo $(echo "`grep -v ":\| \." control`") | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
+if [[ $(echo $(grep -v ":\| \." control) | grep -iq "$(grep -i ^Description: control | sed s'/^Description: //i' | sed s'/\.//')"; echo $?) == 0 ]]; then
+    description=$(echo $(echo "$(grep -v ":\| \." control)") | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g')
 else
-    description=$(echo $(echo "`grep -i ^Description: control | sed s'/^Description: //i' | sed 's/.*/\u&/'`" | sed s'/\.//'). `grep -v ":\| \." control` | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g' | sed s'/\!\./\!/g' | sed s'/\?\./\?/g')
+    description=$(echo $(echo "$(grep -i ^Description: control | sed s'/^Description: //i' | sed 's/.*/\u&/')" | sed s'/\.//'). $(grep -v ":\| \." control) | sed s'/^\s*./\U&\E/g' | sed s'/\(\. \|\! \|\? \)\s*./\U&\E/g' | sed s'/\!\./\!/g' | sed s'/\?\./\?/g')
 fi
 echo "pkgdesc = $description" >> .PKGINFO
 
 # Generating url field
-echo "url = `grep -i ^Homepage: control | gawk '{print $2}'`" | sed s'/\/$//' >> .PKGINFO
+echo "url = $(grep -i ^Homepage: control | gawk '{print $2}')" | sed s'/\/$//' >> .PKGINFO
 
 # Generating builddate (which is actually packaging date) field
-echo "builddate = `date -u "+%s"`" >> .PKGINFO
+echo "builddate = $(date -u "+%s")" >> .PKGINFO
 
 # Generating packager field
 if [[ $quiet == set ]] || [[ $Quiet == set ]]; then
@@ -480,7 +480,7 @@ fi
 
 # Generating arch field
 if [[ $pseudo != set ]]; then
-	echo "arch = `grep -i ^Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/armhf/armv7h/' -e s'/arm64/aarch64/' -e s'/all/any/'`" >> .PKGINFO
+	echo "arch = $(grep -i ^Architecture: control | gawk '{print $2}' | sed -e s'/i386/i686/' -e s'/amd64/x86_64/' -e s'/armhf/armv7h/' -e s'/arm64/aarch64/' -e s'/all/any/')" >> .PKGINFO
 else
 	echo "arch = x86_64" >> .PKGINFO
 fi
@@ -531,7 +531,7 @@ if [[ -e pkgbuildinstallations64 ]]; then
 else
     pkgbuildinstallations64_size=0
 fi
-echo "size =" $((`du -sb | tr -d " ."` - `ls -l | grep control | gawk '{print $5}'` - $preinst_size - $postinst_size - $prerm_size - $postrm_size - $conffiles_size - $pkgbuildinstallations1_size - $pkgbuildinstallations2_size - $pkgbuildinstallations32_size - $pkgbuildinstallations64_size - `ls -la | grep .PKGINFO | gawk '{print $5}'` - 4096)) >> .PKGINFO
+echo "size =" $(($(du -sb | tr -d " .") - $(ls -l | grep control | gawk '{print $5}') - $preinst_size - $postinst_size - $prerm_size - $postrm_size - $conffiles_size - $pkgbuildinstallations1_size - $pkgbuildinstallations2_size - $pkgbuildinstallations32_size - $pkgbuildinstallations64_size - $(ls -la | grep .PKGINFO | gawk '{print $5}') - 4096)) >> .PKGINFO
 
 # Generating license field
 if [[ $quiet == set ]] || [[ $Quiet == set ]]; then
@@ -539,7 +539,7 @@ if [[ $quiet == set ]] || [[ $Quiet == set ]]; then
 else
     echo -e "\n${lightblue}::${NC} Enter package license (can be left blank, you can enter multiple licenses comma separated):"
     read package_license
-    for i in `echo "$package_license" | sed -e s'/ /__/g' -e s'/,/ /g'`; do
+    for i in $(echo "$package_license" | sed -e s'/ /__/g' -e s'/,/ /g'); do
 		license+=($i)
     done
     for (( i=0; i<$(echo ${#license[@]}); i=i+1 )); do
@@ -555,29 +555,29 @@ echo -e "\n${lightgreen}***${NC} ${bold}Creation of .PKGINFO file in progress. I
 # The packages names translator function
 packages-names-translator() {
 # First method of translating .deb packages names into Arch Linux packages names, more accurate, comparing contents of .deb packages with Arch Linux packages contents
-for debian_package_name in $(gawk '{print $1}' `ls | grep initial-check-list`); do
-	for debian_package_file in `grep "\/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
-		echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " `ls | grep initial-check-list` | gawk '{print $2}')
+for debian_package_name in $(gawk '{print $1}' $(ls | grep initial-check-list)); do
+	for debian_package_file in $(grep "\/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
+		echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " $(ls | grep initial-check-list) | gawk '{print $2}')
 	done >> $debian_package_name-tempfile03
 done
 
-for i in `ls | grep tempfile03`; do
-    for j in `gawk '{print $1}' $i`; do
-		for k in `pkgfile -q $j`; do
-			echo $k`head -1 $i | gawk '{print $2$3}'`
+for i in $(ls | grep tempfile03); do
+    for j in $(gawk '{print $1}' $i); do
+		for k in $(pkgfile -q $j); do
+			echo $k$(head -1 $i | gawk '{print $2$3}')
 		done
-    done >> `echo $i | sed s'/tempfile03/tempfile04/'`
+    done >> $(echo $i | sed s'/tempfile03/tempfile04/')
 done
 
 touch tempfile05
-for debian_package_name in $(gawk '{print $1}' `ls | grep initial-check-list`); do
+for debian_package_name in $(gawk '{print $1}' $(ls | grep initial-check-list)); do
     grep -q "^$debian_package_name$" tempfile05 || echo $debian_package_name >> tempfile05
 done
 
-for i in $(for j in `cat tempfile05`; do echo $j-tempfile04; done); do
-    k=`sort $i | uniq -c | gawk '{print $1}' | sort -n | tail -1`
+for i in $(for j in $(cat tempfile05); do echo $j-tempfile04; done); do
+    k=$(sort $i | uniq -c | gawk '{print $1}' | sort -n | tail -1)
     if [[ $(sort $i | uniq -c | gawk '{print $1}' | sort -n | grep "^$k$" | wc -l) -ge 2 ]]; then
-		for l in `cat $i`; do
+		for l in $(cat $i); do
 			for m in $(sort $i | uniq -c | gawk '{print $1,$2}' | sort -n | grep "^$k " | gawk '{print $2}'); do
 				echo $l | grep "^$m$"
 			done
@@ -595,36 +595,36 @@ cat tempfile07 | while read line; do
     if [[ $(echo "$line" | wc -w) -eq 0 ]]; then
 		echo >> final-check-list
     elif [[ $(echo "$line" | wc -w) -eq 1 ]] || [[ $(echo "$line" | wc -w) -eq 3 ]]; then
-		echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}'`" >> final-check-list
+		echo "$(echo "$line" | gawk '{print $1}') $(echo "$line" | gawk '{print $2}') $(echo "$line" | gawk '{print $3}')" >> final-check-list
     elif [[ $(echo "$line" | wc -w) -eq 5 ]]; then
-		echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}'`" >> final-check-list
-		echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $4}'` `echo "$line" | gawk '{print $5}'`" >> final-check-list
+		echo "$(echo "$line" | gawk '{print $1}') $(echo "$line" | gawk '{print $2}') $(echo "$line" | gawk '{print $3}')" >> final-check-list
+		echo "$(echo "$line" | gawk '{print $1}') $(echo "$line" | gawk '{print $4}') $(echo "$line" | gawk '{print $5}')" >> final-check-list
     fi
 done
 
-for i in $(eval echo {1..$(cat `ls | grep initial-check-list` | wc -l)}); do
+for i in $(eval echo {1..$(cat $(ls | grep initial-check-list) | wc -l)}); do
     if [[ $(sed -n ""$i"{p;q;}" final-check-list | gawk '{print $1}') == "" ]]; then
-		echo $(sed -n ""$i"{p;q;}" `ls | grep initial-check-list`) >> untranslated
-		echo $(sed -n ""$i"{p;q;}" `ls | grep initial-check-list` | gawk '{print $1}') >> untranslated-names-only
+		echo $(sed -n ""$i"{p;q;}" $(ls | grep initial-check-list)) >> untranslated
+		echo $(sed -n ""$i"{p;q;}" $(ls | grep initial-check-list) | gawk '{print $1}') >> untranslated-names-only
     elif [[ $(echo " $(echo $(grep ^pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//'){-svn,-git,-cvs,-bzr,-darcs,-hg,}) " | grep -q " $(sed -n ""$i"{p;q;}" final-check-list | gawk '{print $1}') "; echo $?) == 0 ]]; then
-		echo $(sed -n ""$i"{p;q;}" `ls | grep initial-check-list` | sed s'/ //') >> missing-files
+		echo $(sed -n ""$i"{p;q;}" $(ls | grep initial-check-list) | sed s'/ //') >> missing-files
     fi
 done
 
 # Second method of translating remaining untranslated .deb packages names into Arch Linux packages names, same as first method, but searches in Ubuntu database for packages contents instead of Debian database
 if [[ -e untranslated-names-only ]]; then
     for ubuntu_package_name in $(sort -u untranslated-names-only); do
-		for ubuntu_package_file in `grep "\/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'`; do
+		for ubuntu_package_file in $(grep "\/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
 			echo $ubuntu_package_file $(grep "^$ubuntu_package_name$\|^$ubuntu_package_name " untranslated | gawk '{print $2}')
 		done >> $ubuntu_package_name-tempfile08
     done
 
-    for i in `ls | grep tempfile08`; do
-		for j in `gawk '{print $1}' $i`; do
-			for k in `pkgfile -q $j`; do
-				echo $k`head -1 $i | gawk '{print $2$3}'`
+    for i in $(ls | grep tempfile08); do
+		for j in $(gawk '{print $1}' $i); do
+			for k in $(pkgfile -q $j); do
+				echo $k$(head -1 $i | gawk '{print $2$3}')
 			done
-		done >> `echo $i | sed s'/tempfile08/tempfile09/'`
+		done >> $(echo $i | sed s'/tempfile08/tempfile09/')
     done
 
     touch tempfile10
@@ -632,10 +632,10 @@ if [[ -e untranslated-names-only ]]; then
 		grep -q "^$ubuntu_package_name$" tempfile10 || echo $ubuntu_package_name >> tempfile10
     done
 
-    for i in $(for j in `cat tempfile10`; do echo $j-tempfile09; done); do
-		k=`sort $i | uniq -c | gawk '{print $1}' | sort -n | tail -1`
+    for i in $(for j in $(cat tempfile10); do echo $j-tempfile09; done); do
+		k=$(sort $i | uniq -c | gawk '{print $1}' | sort -n | tail -1)
 		if [[ $(sort $i | uniq -c | gawk '{print $1}' | sort -n | grep "^$k$" | wc -l) -ge 2 ]]; then
-			for l in `cat $i`; do
+			for l in $(cat $i); do
 				for m in $(sort $i | uniq -c | gawk '{print $1,$2}' | sort -n | grep "^$k " | gawk '{print $2}'); do
 					echo $l | grep "^$m$"
 				done
@@ -653,10 +653,10 @@ if [[ -e untranslated-names-only ]]; then
 		if [[ $(echo "$line" | wc -w) -eq 0 ]]; then
 			echo >> final-check-list
 		elif [[ $(echo "$line" | wc -w) -eq 1 ]] || [[ $(echo "$line" | wc -w) -eq 3 ]]; then
-			echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}'`" >> final-check-list
+			echo "$(echo "$line" | gawk '{print $1}') $(echo "$line" | gawk '{print $2}') $(echo "$line" | gawk '{print $3}')" >> final-check-list
 		elif [[ $(echo "$line" | wc -w) -eq 5 ]]; then
-			echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}'`" >> final-check-list
-			echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $4}'` `echo "$line" | gawk '{print $5}'`" >> final-check-list
+			echo "$(echo "$line" | gawk '{print $1}') $(echo "$line" | gawk '{print $2}') $(echo "$line" | gawk '{print $3}')" >> final-check-list
+			echo "$(echo "$line" | gawk '{print $1}') $(echo "$line" | gawk '{print $4}') $(echo "$line" | gawk '{print $5}')" >> final-check-list
 		fi
     done
 
@@ -2654,20 +2654,20 @@ fi
 # Appending untranslated packages names (if any exist) to the translated packages names list
 if [[ $(cat new-untranslated 2> /dev/null | wc -l) -ne 0 ]]; then
     tac new-untranslated | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
-    gawk '{print $1}' new-untranslated | sort -u > $(echo `ls | grep initial-check-list` | sed s'/initial-check-list/untranslated-names-only/')
+    gawk '{print $1}' new-untranslated | sort -u > $(echo $(ls | grep initial-check-list) | sed s'/initial-check-list/untranslated-names-only/')
 fi
 rm -rf new-untranslated
 
 # Sorting packages with missing files (if any exist)
 if [[ -e missing-files ]]; then
-    sort -u missing-files > $(echo `ls | grep initial-check-list` | sed s'/initial-check-list/missing-files/')
+    sort -u missing-files > $(echo $(ls | grep initial-check-list) | sed s'/initial-check-list/missing-files/')
     rm -rf missing-files
 fi
 
 # Special rules for optional dependencies
 if [[ -e optional-dependencies-untranslated-names-only ]]; then
     if [[ -e dependencies-untranslated-names-only ]]; then
-        for i in `cat optional-dependencies-untranslated-names-only`; do
+        for i in $(cat optional-dependencies-untranslated-names-only); do
             if [[ $(grep -q "^$i$" dependencies-untranslated-names-only; echo $?) != 0 ]]; then
                 echo "$i" >> optional-dependencies-untranslated-names-only-1
             fi
@@ -2708,31 +2708,31 @@ fi
 
 # Stripping unnecessary symbols and words from packages versions
 grep -v "^$" final-check-list | while read line; do
-    echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | sed s'/^[^:]*://' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\././g' | sed s'/\.$//'`" >> tempfile13
+    echo "$(echo "$line" | gawk '{print $1}') $(echo "$line" | gawk '{print $2}') $(echo "$line" | gawk '{print $3}' | sed s'/^[^:]*://' | sed -e s'/[+~]/-/g' -e s'/[-._]alpha/alpha/' -e s'/[-._]beta/beta/' -e s'/[-._]pre/pre/' -e s'/[-._]rc/rc/' -e s'/[-._]dfsg/dfsg/' | gawk -F 'dev' '{print $1}' | sed -e s'/-\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+\.[0-9]\+//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]\+\.[0-9]\+\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/-[0-9]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]\+\.[0-9]\+[a-z]*[0-9]*//g' -e s'/[a-z]*\(ubuntu\|debian\|build\|dfsg\|nobinonly\|ppa\|nmu\|deb\)[0-9]*[a-z]*[0-9]*//g' -e s'/--/-/g' -e s'/\.\././g' | sed s'/\.$//')" >> tempfile13
 done
 
 # Special rules for version control systems
 cat tempfile13 | while read line; do
     for i in {git,bzr,darcs,hg}; do
 		if [[ $(echo "$line" | gawk '{print $3}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "$(echo `echo "$line" | gawk '{print $1}'`-$i | sed s"/-$i-$i$/-$i/") `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`" >> tempfile14
+			echo "$(echo $(echo "$line" | gawk '{print $1}')-$i | sed s"/-$i-$i$/-$i/") $(echo "$line" | gawk '{print $2}') $(echo "$line" | gawk '{print $3}' | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}')" >> tempfile14
 		fi
     done
     for i in {svn.r,svnr}; do
 		if [[ $(echo "$line" | gawk '{print $3}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "$(echo `echo "$line" | gawk '{print $1}'`-svn | sed s'/-svn-svn$/-svn/') `echo "$line" | gawk '{print $2}'` r`echo "$line" | gawk '{print $3}' | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}'`" >> tempfile14
+			echo "$(echo $(echo "$line" | gawk '{print $1}')-svn | sed s'/-svn-svn$/-svn/') $(echo "$line" | gawk '{print $2}') r$(echo "$line" | gawk '{print $3}' | gawk -F "$i" '{print $2}' | gawk -F '-' '{print $1}')" >> tempfile14
 		fi
     done
     if [[ $(echo "$line" | gawk '{print $3}' | grep -q svn; echo $?) == 0 ]] && [[ $(echo "$line" | gawk '{print $3}' | grep -q "svn\.r\|svnr"; echo $?) != 0 ]]; then
-		echo "$(echo `echo "$line" | gawk '{print $1}'`-svn | sed s'/-svn-svn$/-svn/') `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | gawk -F 'svn' '{print $2}' | gawk -F '-' '{print $1}'`" >> tempfile14
+		echo "$(echo $(echo "$line" | gawk '{print $1}')-svn | sed s'/-svn-svn$/-svn/') $(echo "$line" | gawk '{print $2}') $(echo "$line" | gawk '{print $3}' | gawk -F 'svn' '{print $2}' | gawk -F '-' '{print $1}')" >> tempfile14
     fi
     for i in {cvs,CVS}; do
 		if [[ $(echo "$line" | gawk '{print $3}' | grep -q $i; echo $?) == 0 ]]; then
-			echo "$(echo `echo "$line" | gawk '{print $1}'`-cvs | sed s'/-cvs-cvs$/-cvs/') `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | sed -e s"/[-.]$i/ /g" -e s"/$i/ /g" -e s"/-/ /g" | gawk '{print $2}'`" >> tempfile14
+			echo "$(echo $(echo "$line" | gawk '{print $1}')-cvs | sed s'/-cvs-cvs$/-cvs/') $(echo "$line" | gawk '{print $2}') $(echo "$line" | gawk '{print $3}' | sed -e s"/[-.]$i/ /g" -e s"/$i/ /g" -e s"/-/ /g" | gawk '{print $2}')" >> tempfile14
 		fi
     done
     if [[ $(echo "$line" | gawk '{print $3}' | grep -q "svn\|git\|cvs\|CVS\|bzr\|darcs\|hg"; echo $?) != 0 ]]; then
-		echo "`echo "$line" | gawk '{print $1}'` `echo "$line" | gawk '{print $2}'` `echo "$line" | gawk '{print $3}' | gawk -F '-[0-9]' '{print $1}' | sed s'/-/./'`" >> tempfile14
+		echo "$(echo "$line" | gawk '{print $1}') $(echo "$line" | gawk '{print $2}') $(echo "$line" | gawk '{print $3}' | gawk -F '-[0-9]' '{print $1}' | sed s'/-/./')" >> tempfile14
     fi
 done
 
@@ -2753,7 +2753,7 @@ fi
 if [[ -e dependencies-initial-check-list ]]; then
     grep -q qt tempfile15 && echo hicolor-icon-theme >> tempfile15
     grep -q gtk tempfile15 && echo -e "hicolor-icon-theme\ndesktop-file-utils" >> tempfile15
-    grep -q ^Python-Version: control && echo python`grep ^Python-Version: control | gawk '{print $2}' | sed s'/\.//g'` >> tempfile15
+    grep -q ^Python-Version: control && echo python$(grep ^Python-Version: control | gawk '{print $2}' | sed s'/\.//g') >> tempfile15
 	# Fourth method of finding packages names exclusively for non-optional dependencies (accurate)
 	for i in $(readelf -d $(find ./ -executable -type f) 2> /dev/null | grep NEEDED | gawk '{print $5}' | sort -u | sed s'/\[\|\]//g'); do
 		pkgfile -q "$i" | head -1 >> tempfile15
@@ -2776,7 +2776,7 @@ gawk '{print $1}' tempfile16 | sort -u > tempfile17
 
 # Removing packages names that are the same with the name of the package to be converted from translated packages list (if any exist)
 touch tempfile18
-for i in `cat tempfile17`; do
+for i in $(cat tempfile17); do
     if [[ $(echo " $(echo $(grep ^pkgname .PKGINFO | gawk '{print $3}' | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//'){-svn,-git,-cvs,-bzr,-darcs,-hg,}) " | grep -q " $(echo $i | sed s'/^lib32-\|-multilib$//') "; echo $?) != 0 ]]; then
 		echo "$i" >> tempfile18
 		grep "^$i$\|^$i " tempfile16 >> $i-tempfile19
@@ -2786,21 +2786,21 @@ done
 touch tempfile22
 if [[ $wipeout != set ]] && [[ $(ls *-tempfile19 &> /dev/null; echo $?) == 0 ]]; then
 	# Isolating versions from packages
-	for i in `ls | grep tempfile19`; do
+	for i in $(ls | grep tempfile19); do
 		if [[ $(grep -q "=\|>\|<" $i; echo $?) != 0 ]]; then
-			cat $i >> `echo $i | sed s'/tempfile19/tempfile21/'`
+			cat $i >> $(echo $i | sed s'/tempfile19/tempfile21/')
 		else
 			cat $i | while read line; do
-				echo $line | gawk '{print $3}' | sed -e s'/\.[a-z]/ /g' -e s'/[a-z]/ /g' | gawk '{print $1}' >> `echo $i | sed s'/tempfile19/tempfile20/'`
+				echo $line | gawk '{print $3}' | sed -e s'/\.[a-z]/ /g' -e s'/[a-z]/ /g' | gawk '{print $1}' >> $(echo $i | sed s'/tempfile19/tempfile20/')
 			done
 		fi
 	done
 
 	# Sorting versions for each package
-	for i in `ls | grep tempfile20`; do
-		j=`echo $i | sed s'/tempfile20/tempfile19/'`
-		k=`echo $i | sed s'/tempfile20/tempfile21/'`
-		for l in `sort -uV $i | grep -v "^$"`; do
+	for i in $(ls | grep tempfile20); do
+		j=$(echo $i | sed s'/tempfile20/tempfile19/')
+		k=$(echo $i | sed s'/tempfile20/tempfile21/')
+		for l in $(sort -uV $i | grep -v "^$"); do
 			grep -q "$l[a-z]\+" $j && grep "$l[a-z]\+" $j | sort -V >> $k
 			grep -q "$l$" $j && grep "$l$" $j >> $k
 			grep -q "$l\.[a-z]\+" $j && grep "$l\.[a-z]\+" $j | sort -V >> $k
@@ -2808,7 +2808,7 @@ if [[ $wipeout != set ]] && [[ $(ls *-tempfile19 &> /dev/null; echo $?) == 0 ]];
 	done
 
 	# Choosing the appropriate version for each package
-	for i in `ls | grep tempfile21`; do
+	for i in $(ls | grep tempfile21); do
 		if [[ $(grep -q "=\|>\|<" $i; echo $?) != 0 ]]; then
 			cat $i >> tempfile22
 		elif [[ $(grep -q "=" $i; echo $?) == 0 ]] && [[ $(grep -q ">\|<" $i; echo $?) != 0 ]]; then
@@ -2836,9 +2836,9 @@ if [[ $(grep -q ^Replaces: control; echo $?) == 0 ]]; then
     grep -v '^xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > replacements-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]]; then
-		for i in `sort -u tempfile22`; do echo "replaces = $i" >> .PKGINFO; done
+		for i in $(sort -u tempfile22); do echo "replaces = $i" >> .PKGINFO; done
 	else
-		for i in `sort -u tempfile18`; do echo "replaces = $i" >> .PKGINFO; done
+		for i in $(sort -u tempfile18); do echo "replaces = $i" >> .PKGINFO; done
 	fi
 	rm -rf *tempfile* replacements-initial-check-list final-check-list
 fi
@@ -2854,9 +2854,9 @@ if [[ $(grep -q ^Conflicts: control; echo $?) == 0 ]]; then
     grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > conflicts-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]]; then
-		for i in `sort -u tempfile22`; do echo "conflict = $i" >> .PKGINFO; done
+		for i in $(sort -u tempfile22); do echo "conflict = $i" >> .PKGINFO; done
 	else
-		for i in `sort -u tempfile18`; do echo "conflict = $i" >> .PKGINFO; done
+		for i in $(sort -u tempfile18); do echo "conflict = $i" >> .PKGINFO; done
 	fi
 	rm -rf *tempfile* conflicts-initial-check-list final-check-list
 fi
@@ -2872,9 +2872,9 @@ if [[ $(grep -q ^Provides: control; echo $?) == 0 ]]; then
     grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > provisions-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]] && [[ $pkgbuild != set ]] && [[ $Pkgbuild != set ]]; then
-		for i in `sort -u tempfile22`; do echo "provides = $i" >> .PKGINFO; done
+		for i in $(sort -u tempfile22); do echo "provides = $i" >> .PKGINFO; done
 	else
-		for i in `sort -u tempfile18`; do echo "provides = $i" >> .PKGINFO; done
+		for i in $(sort -u tempfile18); do echo "provides = $i" >> .PKGINFO; done
 	fi
 	rm -rf *tempfile* provisions-initial-check-list final-check-list
 fi
@@ -2891,7 +2891,7 @@ if [[ -e conffiles ]]; then
 	else
 		sed -i -e s'/^bin\//usr\/bin\//g' -e s'/^sbin\//usr\/bin\//g' -e s'/^usr\/sbin\//usr\/bin\//g' -e s'/^usr\/games\//usr\/bin\//g' -e s'/^lib\//usr\/lib32\//g' -e s'/^lib32\//usr\/lib32\//g' -e s'/^usr\/lib\//usr\/lib32\//g' -e s'/^usr\/local\/sbin\//usr\/bin\//g' -e s'/^usr\/local\/games\//usr\/bin\//g' -e s'/^usr\/local\/lib\//usr\/lib32\//g' -e s'/^usr\/local\//usr\//g' tempfile
 	fi
-	for i in `sort -u tempfile`; do echo "backup = $i" >> .PKGINFO; done
+	for i in $(sort -u tempfile); do echo "backup = $i" >> .PKGINFO; done
 	rm -rf tempfile
 fi
 
@@ -2906,9 +2906,9 @@ if [[ $(grep -q '^Depends:\|^Pre-Depends:' control; echo $?) == 0 ]]; then
     grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > dependencies-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]]; then
-		for i in `sort -u tempfile22`; do echo "depend = $i" >> .PKGINFO; done
+		for i in $(sort -u tempfile22); do echo "depend = $i" >> .PKGINFO; done
 	else
-		for i in `sort -u tempfile18`; do echo "depend = $i" >> .PKGINFO; done
+		for i in $(sort -u tempfile18); do echo "depend = $i" >> .PKGINFO; done
 	fi
 	rm -rf *tempfile* dependencies-initial-check-list final-check-list
 fi
@@ -2924,14 +2924,14 @@ if [[ $(grep -q '^Recommends:\|^Suggests:' control; echo $?) == 0 ]]; then
     grep -v 'xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > optional-dependencies-initial-check-list
     packages-names-translator
 	if [[ $wipeout != set ]]; then
-		for i in `sort -u tempfile22`; do
+		for i in $(sort -u tempfile22); do
 			j=$(echo $i | sed s'/=\|>\|</ /' | gawk '{print $1}')
 			if [[ $(grep -q "^depend = $j$\|^depend = $j[=|>|<]" .PKGINFO; echo $?) != 0 ]]; then
 				echo "optdepend = $i" >> .PKGINFO
 			fi
 		done
 	else
-		for i in `sort -u tempfile18`; do
+		for i in $(sort -u tempfile18); do
 			if [[ $(grep -q "^depend = $i$\|^depend = $i[=|>|<]" .PKGINFO; echo $?) != 0 ]]; then
 				echo "optdepend = $i" >> .PKGINFO
 			fi
@@ -2952,7 +2952,7 @@ mv *missing-files /tmp/debtap 2> /dev/null
 # Report of (warning messages for) untranslated packages names and packages with missing files (if any exist)
 if [[ -e /tmp/debtap/dependencies-untranslated-names-only ]]; then
     echo -e "\n${lightred}Warning: These dependencies (depend =   fields) could not be translated into Arch Linux packages names:${NC}"
-    echo `cat /tmp/debtap/dependencies-untranslated-names-only` | sed s'/ /, /g'
+    echo $(cat /tmp/debtap/dependencies-untranslated-names-only) | sed s'/ /, /g'
 fi
 if [[ -e /tmp/debtap/dependencies-missing-files ]]; then
     if [[ -e /tmp/debtap/dependencies-untranslated-names-only ]]; then
@@ -2960,7 +2960,7 @@ if [[ -e /tmp/debtap/dependencies-missing-files ]]; then
     else
 	echo -e "\n${lightred}Warning: These packages names could not be included as dependencies, because debtap has translated them into the same name with the package for conversion. This happens sometimes when you convert packages that already exist in your repositories (which is a bad idea in general). The following packages contain files that are already included in the package from your repositories (without these files your converted package may be dysfunctional):${NC}"
     fi
-    echo `cat /tmp/debtap/dependencies-missing-files` | sed s'/ /, /g'
+    echo $(cat /tmp/debtap/dependencies-missing-files) | sed s'/ /, /g'
 fi
 if [[ -e /tmp/debtap/optional-dependencies-untranslated-names-only-1 ]]; then
     if [[ -e /tmp/debtap/dependencies-untranslated-names-only ]] || [[ -e /tmp/debtap/dependencies-missing-files ]]; then
@@ -2968,7 +2968,7 @@ if [[ -e /tmp/debtap/optional-dependencies-untranslated-names-only-1 ]]; then
     else
 	echo -e "\n${lightred}Warning: These optional dependencies (optdepend =   fields) could not be translated into Arch Linux packages names:${NC}"
     fi
-    echo `cat /tmp/debtap/optional-dependencies-untranslated-names-only-1` | sed s'/ /, /g'
+    echo $(cat /tmp/debtap/optional-dependencies-untranslated-names-only-1) | sed s'/ /, /g'
 fi
 if [[ -e /tmp/debtap/replacements-untranslated-names-only ]]; then
     if [[ -e /tmp/debtap/dependencies-untranslated-names-only ]] || [[ -e /tmp/debtap/dependencies-missing-files ]] || [[ -e /tmp/debtap/optional-dependencies-untranslated-names-only-1 ]]; then
@@ -2976,7 +2976,7 @@ if [[ -e /tmp/debtap/replacements-untranslated-names-only ]]; then
     else
 	echo -e "\n${lightred}Warning: These replacements (replaces =   fields) could not be translated into Arch Linux packages names:${NC}"
     fi
-    echo `cat /tmp/debtap/replacements-untranslated-names-only` | sed s'/ /, /g'
+    echo $(cat /tmp/debtap/replacements-untranslated-names-only) | sed s'/ /, /g'
 fi
 if [[ -e /tmp/debtap/conflicts-untranslated-names-only ]]; then
     if [[ -e /tmp/debtap/dependencies-untranslated-names-only ]] || [[ -e /tmp/debtap/dependencies-missing-files ]] || [[ -e /tmp/debtap/optional-dependencies-untranslated-names-only-1 ]] || [[ -e /tmp/debtap/replacements-untranslated-names-only ]]; then
@@ -2984,7 +2984,7 @@ if [[ -e /tmp/debtap/conflicts-untranslated-names-only ]]; then
     else
 	echo -e "\n${lightred}Warning: These conflicts (conflict =   fields) could not be translated into Arch Linux packages names:${NC}"
     fi
-    echo `cat /tmp/debtap/conflicts-untranslated-names-only` | sed s'/ /, /g'
+    echo $(cat /tmp/debtap/conflicts-untranslated-names-only) | sed s'/ /, /g'
 fi
 if [[ -e /tmp/debtap/provisions-untranslated-names-only ]]; then
     if [[ -e /tmp/debtap/dependencies-untranslated-names-only ]] || [[ -e /tmp/debtap/dependencies-missing-files ]] || [[ -e /tmp/debtap/optional-dependencies-untranslated-names-only-1 ]] || [[ -e /tmp/debtap/replacements-untranslated-names-only ]] || [[ -e /tmp/debtap/conflicts-untranslated-names-only ]]; then
@@ -2992,7 +2992,7 @@ if [[ -e /tmp/debtap/provisions-untranslated-names-only ]]; then
     else
 	echo -e "\n${lightred}Warning: These provisions (provides =   fields) could not be translated into Arch Linux packages names:${NC}"
     fi
-    echo `cat /tmp/debtap/provisions-untranslated-names-only` | sed s'/ /, /g'
+    echo $(cat /tmp/debtap/provisions-untranslated-names-only) | sed s'/ /, /g'
 fi
 
 # Generating .INSTALL file (if necessary)
@@ -3137,7 +3137,7 @@ if [[ -e tempfile2 ]]; then
 		sed -i -e s"/ \[\[ \"\$1\" = \"$i\" \]\] &&\| && \[\[ \"\$1\" = \"$i\" \]\]//g" -e s"/ \[ \"\$1\" = \"$i\" \] &&\| && \[ \"\$1\" = \"$i\" \]//g" -e s"/ \[\[ \"\${1}\" = \"$i\" \]\] &&\| && \[\[ \"\${1}\" = \"$i\" \]\]//g" -e s"/ \[ \"\${1}\" = \"$i\" \] &&\| && \[ \"\${1}\" = \"$i\" \]//g" -e s"/ \[\[ \"\$1\" = $i \]\] &&\| && \[\[ \"\$1\" = $i \]\]//g" -e s"/ \[ \"\$1\" = $i \] &&\| && \[ \"\$1\" = $i \]//g" -e s"/ \[\[ \"\${1}\" = $i \]\] &&\| && \[\[ \"\${1}\" = $i \]\]//g" -e s"/ \[ \"\${1}\" = $i \] &&\| && \[ \"\${1}\" = $i \]//g" tempfile2
 	done
 
-	sed -e s'/-x "`which update-menus 2> \/dev\/null`"\|-x "`which update-menus 2>\/dev\/null`"/-f usr\/bin\/update-mime-database/g' -e s'/update-menus/update-mime-database usr\/share\/mime \&> \/dev\/null/g' -e s'/dpkg --listfiles\|dpkg -L/pacman -Qql/g' -e s'/ dash / bash /g' tempfile2 > .INSTALL
+	sed -e s'/-x "$(which update-menus 2> \/dev\/null)"\|-x "$(which update-menus 2>\/dev\/null)"/-f usr\/bin\/update-mime-database/g' -e s'/update-menus/update-mime-database usr\/share\/mime \&> \/dev\/null/g' -e s'/dpkg --listfiles\|dpkg -L/pacman -Qql/g' -e s'/ dash / bash /g' tempfile2 > .INSTALL
 fi
 
 rm -rf tempfile*
@@ -3191,7 +3191,7 @@ bsdtar -czf .MTREE --format=mtree --options='!all,use-set,type,uid,gid,mode,time
 if [[ $Pkgbuild != set ]]; then
 echo -e "\n${lightgreen}==>${NC} ${bold}Creating final package...${normal}"
 fakeroot << EOF
-tar --force-local -pcf `grep '^pkgname =' .PKGINFO | gawk '{print $3}'`-`grep '^pkgver =' .PKGINFO | gawk '{print $3}'`-`grep '^arch =' .PKGINFO | gawk '{print $3}'`.pkg.tar --exclude='pkgbuildinstallations*' * .PKGINFO .INSTALL .MTREE 2> /dev/null
+tar --force-local -pcf $(grep '^pkgname =' .PKGINFO | gawk '{print $3}')-$(grep '^pkgver =' .PKGINFO | gawk '{print $3}')-$(grep '^arch =' .PKGINFO | gawk '{print $3}').pkg.tar --exclude='pkgbuildinstallations*' * .PKGINFO .INSTALL .MTREE 2> /dev/null
 zstd -q -T0 --ultra -20 *.tar
 EOF
 mv *.zst "$(dirname "$package_with_full_path")"
