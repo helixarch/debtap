@@ -71,7 +71,7 @@ elif [[ $update == set ]]; then
         chmod 755 /var/cache/debtap
         echo -e "${lightgreen}==>${NC} ${bold}Synchronizing pkgfile database...${normal}"
         pkgfile -u
-        if [[ $(echo $?) != 0 ]]; then
+        if [[ $? != 0 ]]; then
             echo -e "${red}Synchronization failed. Exiting...${NC}"; exit 1
         else
             echo -e "${lightgreen}==>${NC} ${bold}Synchronizing debtap database...${normal}"
@@ -95,7 +95,7 @@ elif [[ $update == set ]]; then
                 curl -k -C - -f http://ports.ubuntu.com/ubuntu-ports/dists/$ubuntu_latest_stable_version/Contents-$_arch.gz > /var/cache/debtap/ubuntu-packages-files.gz
             fi
             gzip -df /var/cache/debtap/ubuntu-packages-files.gz
-            if [[ $(echo $?) != 0 ]]; then
+            if [[ $? != 0 ]]; then
                 echo -e "${red}Synchronization failed. Exiting...${NC}"; exit 1
             else
                 echo -e "${lightgreen}==>${NC} ${bold}Downloading latest virtual packages list...${normal}"
@@ -103,13 +103,13 @@ elif [[ $update == set ]]; then
                 tar xfz /var/cache/debtap/master.tar.gz -C /var/cache/debtap
                 mv /var/cache/debtap/virtual-packages-list-generator-master/virtual-packages /var/cache/debtap
                 rm -rf /var/cache/debtap/master.tar.gz /var/cache/debtap/virtual-packages-list-generator-master
-                if [[ $(echo $?) != 0 ]]; then
+                if [[ $? != 0 ]]; then
                     echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
                 else
                     echo -e "${lightgreen}==>${NC} ${bold}Downloading latest AUR packages list...${normal}"
                     curl -k -C - -f https://aur.archlinux.org/packages.gz > /var/cache/debtap/aur-packages.gz
                     gzip -df /var/cache/debtap/aur-packages.gz
-                    if [[ $(echo $?) != 0 ]]; then
+                    if [[ $? != 0 ]]; then
                         echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
                     else    
                         echo -e "${lightgreen}==>${NC} ${bold}Generating base group packages list...${normal}"
@@ -176,7 +176,7 @@ package_with_full_path="$(readlink -f "${@: -1}")"
 working_directory="$(pwd)/$(basename "${@: -1}" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb$//')-working-directory"
 rm -rf "$working_directory" 2> /dev/null
 mkdir "$working_directory" 2> /dev/null
-if [[ $(echo $?) != 0 ]]; then
+if [[ $? != 0 ]]; then
 	echo -e "${red}Error: Cannot create working directory, permission denied. Exiting...${NC}"
 	exit 1
 fi
@@ -542,7 +542,7 @@ else
     for i in $(echo "$package_license" | sed -e s'/ /__/g' -e s'/,/ /g'); do
 		license+=($i)
     done
-    for (( i=0; i<$(echo ${#license[@]}); i=i+1 )); do
+    for (( i=0; i<${#license[@]}; i=i+1 )); do
         license[$i]=$(echo ${license[$i]} | sed s'/__/ /g')
     done
     printf '%s\n' "${license[@]}" | while read line; do
@@ -2943,7 +2943,7 @@ fi
 # Moving report files to /tmp/debtap (if any exist)
 rm -rf /tmp/debtap 2> /dev/null
 mkdir /tmp/debtap 2> /dev/null
-if [[ $(echo $?) != 0 ]]; then
+if [[ $? != 0 ]]; then
 	echo -e "${red}Error: Cannot create /tmp/debtap, permission denied${NC}"
 fi
 mv *untranslated* /tmp/debtap 2> /dev/null
@@ -3014,7 +3014,7 @@ if [[ -e preinst ]]; then
 	done
 fi
 echo "}" >> tempfile1
-if [[ $(echo $(($(grep "[[:blank:]]" -o tempfile1 | wc -l) + 15))) != $(echo $(($(wc -c < tempfile1) - $(wc -l < tempfile1)))) ]]; then
+if [[ $(($(grep "[[:blank:]]" -o tempfile1 | wc -l) + 15)) != $(($(wc -c < tempfile1) - $(wc -l < tempfile1))) ]]; then
 	cat tempfile1 >> tempfile2
 fi
 
@@ -3040,7 +3040,7 @@ if [[ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) == 0 ]]; then
 	echo -e '\tupdate-desktop-database -q' >> tempfile1
 fi
 echo "}" >> tempfile1
-if [[ $(echo $(($(grep "[[:blank:]]" -o tempfile1 | wc -l) + 16))) != $(echo $(($(wc -c < tempfile1) - $(wc -l < tempfile1)))) ]]; then
+if [[ $(($(grep "[[:blank:]]" -o tempfile1 | wc -l) + 16)) != $(($(wc -c < tempfile1) - $(wc -l < tempfile1))) ]]; then
 	cat tempfile1 >> tempfile2
 fi
 
@@ -3070,7 +3070,7 @@ if [[ -e prerm ]]; then
 	done
 fi
 echo "}" >> tempfile1
-if [[ $(echo $(($(grep "[[:blank:]]" -o tempfile1 | wc -l) + 14))) != $(echo $(($(wc -c < tempfile1) - $(wc -l < tempfile1)))) ]]; then
+if [[ $(($(grep "[[:blank:]]" -o tempfile1 | wc -l) + 14)) != $(($(wc -c < tempfile1) - $(wc -l < tempfile1))) ]]; then
 	cat tempfile1 >> tempfile2
 fi
 
@@ -3096,7 +3096,7 @@ if [[ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) == 0 ]]; then
 	echo -e '\tupdate-desktop-database -q' >> tempfile1
 fi
 echo "}" >> tempfile1
-if [[ $(echo $(($(grep "[[:blank:]]" -o tempfile1 | wc -l) + 15))) != $(echo $(($(wc -c < tempfile1) - $(wc -l < tempfile1)))) ]]; then
+if [[ $(($(grep "[[:blank:]]" -o tempfile1 | wc -l) + 15)) != $(($(wc -c < tempfile1) - $(wc -l < tempfile1))) ]]; then
 	cat tempfile1 >> tempfile2
 fi
 IFS=$SAVEIFS
@@ -3334,7 +3334,7 @@ fi
 echo -e "\npackage(){\n\n	# Extract package data" >> PKGBUILD
 echo "	$data_extract -f $data_tar_check -C \"\${pkgdir}\"" >> PKGBUILD
 if [[ -e pkgbuildinstallations1 ]] || [[ -e pkgbuildinstallations2 ]] || [[ -e pkgbuildinstallations32 ]] || [[ -e pkgbuildinstallations64 ]]; then
-	if [[ $(grep '^install' pkgbuildinstallations1 2> /dev/null | wc -l) != $(echo $(($(cat pkgbuildinstallations1 2> /dev/null | wc -l) + $(cat pkgbuildinstallations2 2> /dev/null | wc -l) + $(cat pkgbuildinstallations32 2> /dev/null | wc -l) + $(cat pkgbuildinstallations64 2> /dev/null | wc -l)))) ]]; then
+	if [[ $(grep '^install' pkgbuildinstallations1 2> /dev/null | wc -l) != $(($(cat pkgbuildinstallations1 2> /dev/null | wc -l) + $(cat pkgbuildinstallations2 2> /dev/null | wc -l) + $(cat pkgbuildinstallations32 2> /dev/null | wc -l) + $(cat pkgbuildinstallations64 2> /dev/null | wc -l))) ]]; then
 		echo -e "\n	# Fix directory structure differences\n	cd \"\${pkgdir}\"" >> PKGBUILD
 	fi
 fi
@@ -3381,7 +3381,7 @@ if [[ -e pkgbuildinstallations2 ]]; then
 	done
 fi
 if [[ -e pkgbuildinstallations1 ]] || [[ -e pkgbuildinstallations2 ]] || [[ -e pkgbuildinstallations32 ]] || [[ -e pkgbuildinstallations64 ]]; then
-	if [[ $(grep '^install' pkgbuildinstallations1 2> /dev/null | wc -l) != $(echo $(($(cat pkgbuildinstallations1 2> /dev/null | wc -l) + $(cat pkgbuildinstallations2 2> /dev/null | wc -l) + $(cat pkgbuildinstallations32 2> /dev/null | wc -l) + $(cat pkgbuildinstallations64 2> /dev/null | wc -l)))) ]]; then
+	if [[ $(grep '^install' pkgbuildinstallations1 2> /dev/null | wc -l) != $(($(cat pkgbuildinstallations1 2> /dev/null | wc -l) + $(cat pkgbuildinstallations2 2> /dev/null | wc -l) + $(cat pkgbuildinstallations32 2> /dev/null | wc -l) + $(cat pkgbuildinstallations64 2> /dev/null | wc -l))) ]]; then
 		echo -e "\n	cd .." >> PKGBUILD
 	fi
 fi
@@ -3391,7 +3391,7 @@ echo -e "\n}" >> PKGBUILD
 pkgname="$(grep '^pkgname=' PKGBUILD | sed s'/^pkgname=//')"
 rm -rf "../$pkgname" 2> /dev/null
 mkdir "../$pkgname" 2> /dev/null
-if [[ $(echo $?) != 0 ]]; then
+if [[ $? != 0 ]]; then
 	echo -e "${red}Error: Cannot create PKGBUILD directory, permission denied. Removing leftover files and exiting...${NC}"
 	rm -rf "$working_directory"
 	rm -rf /tmp/debtap
