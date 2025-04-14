@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-#	Copyright 2014-2022 George Savvidis
+#	Copyright 2014-2025 George Savvidis
 
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Version=3.5.1
+Version=3.6
 
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
@@ -27,7 +27,9 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 
 # Options, help, database update and error messages
+optionsarray=()
 for i in "$@"; do
+	optionsarray+=($@)
 	if [[ "$i" =~ ^-([huqQswpPv]*)h([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--help$ ]]; then
 		help=set
 	fi
@@ -55,12 +57,28 @@ for i in "$@"; do
  	if [[ "$i" =~ ^-([huqQswpPv]*)v([huqQswpPv]*)$ ]] || [[ "$i" =~ ^--version$ ]]; then
 		version=set
 	fi
+	if [[ "$i" =~ ^-o$ ]] || [[ "$i" =~ ^--output$ ]]; then
+		output=set
+	fi
 done
+if [[ $output == set ]]; then
+	for i in $(eval echo {0..$((${#optionsarray[@]}-1))}); do
+		if [[ "${optionsarray[$i]}" =~ ^-o$ ]] || [[ "${optionsarray[$i]}" =~ ^--output$ ]]; then
+			if [[ "${optionsarray[$i+1]}" == "" ]]; then
+				echo -e "${red}Error: You haven't specified an output directory${NC}"; exit 1;
+			elif [ -d "${optionsarray[$i+1]}" ]; then
+				outputdirectory="${optionsarray[$i+1]}"
+			else
+				echo -e "${red}Error: No output directory or invalid output directory${NC}"; exit 1;
+			fi
+		fi
+	done
+fi
 if [[ $pseudo == set ]] && [[ ! -e /var/lib/pacman/sync/multilib.db ]] && [[ ! -e /var/lib/pacman/sync/multilib-testing.db ]]; then
 	echo -e "${red}Error: You are either running non-x86_64 Arch Linux, or you haven't enabled multilib repository. If you are running x86_64 Arch Linux, you must enable a multilib repository and then synchronize pacman database${NC}"; exit 1
 fi
 if [[ $help == set ]]; then
-	echo -e "Syntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --help        Print this help message\n    -u  --update      Update debtap database\n    -q  --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Quiet       Bypass all questions (not recommended)\n    -s  --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --version     Print version"; exit 0
+	echo -e "Syntax: debtap -o output_directory [other_options] package_filename\n\nOptions:\n\n    -h  --help        Print this help message\n    -u  --update      Update debtap database\n    -q  --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Quiet       Bypass all questions (not recommended)\n    -s  --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --Pkgbuild    Generate a PKGBUILD file only\n    -o  --output      Output directory for generated package and/or pkgbuild (optional)\n    -v  --version     Print version"; exit 0
 elif [[ $version == set ]]; then
 	echo -e "$Version"; exit 0
 elif [[ $update == set ]]; then
@@ -111,7 +129,7 @@ elif [[ $update == set ]]; then
                     gzip -df /var/cache/debtap/aur-packages.gz
                     if [[ $? != 0 ]]; then
                         echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
-                    else    
+                    else
                         echo -e "${lightgreen}==>${NC} ${bold}Generating base group packages list...${normal}"
                         rm -rf /var/cache/debtap/base-packages
                         for i in $(pacman -Qi base 2> /dev/null | grep ^Depends | cut -d: -f2); do echo "$i" >> /var/cache/debtap/base-packages; done; echo >> /var/cache/debtap/base-packages
@@ -122,29 +140,19 @@ elif [[ $update == set ]]; then
             fi
         fi
     fi
-elif [[ "${@: -1}" == "debtap" ]] || [[ "${@: -1}" =~ /debtap$ ]] || [[ "${@: -1}" =~ ^-([qQswpP]+)$ ]] || [[ "${@: -1}" =~ ^--([quiet|Quiet|pseudo|wipeout|pkgbuild|Pkgbuild]){1,}$ ]]; then
-	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap [options] package_filename\n\nOptions:\n\n    -h  --help        Print this help message\n    -u  --update      Update debtap database\n    -q  --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Quiet       Bypass all questions (not recommended)\n    -s  --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --Pkgbuild    Generate a PKGBUILD file only\n    -v  --version     Print version"; exit 1
+elif [[ "${@: -1}" == "debtap" ]] || [[ "${@: -1}" =~ /debtap$ ]] || [[ "${@: -1}" =~ ^-([qQswpPo]+)$ ]] || [[ "${@: -1}" =~ ^--([quiet|Quiet|pseudo|wipeout|pkgbuild|Pkgbuild|output]){1,}$ ]] || [[ "${@: -1}" =~ ^-(o+)$ ]] || [[ "${@: -1}" =~ ^--(output){1,}$ ]] || [[ -d "${@: -1}" ]]; then
+	echo -e "${red}Error: You haven't specified a deb package${NC}\nSyntax: debtap -o output_directory [other_options] package_filename\n\nOptions:\n\n    -h  --help        Print this help message\n    -u  --update      Update debtap database\n    -q  --quiet       Bypass all questions, except for editing metadata file(s)\n    -Q  --Quiet       Bypass all questions (not recommended)\n    -s  --pseudo      Create a pseudo-64-bit package from a 32-bit .deb package\n    -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.\n    -p  --pkgbuild    Additionally generate a PKGBUILD file\n    -P  --Pkgbuild    Generate a PKGBUILD file only\n    -o  --output      Output directory for generated package and/or pkgbuild (optional)\n    -v  --version     Print version"; exit 1
 elif [[ "${@: -1}" =~ ^(-)+(.)*$ ]] || [[ $(ls "${@: -1}" &> /dev/null; echo $?) != 0 ]]; then
 	echo -e "${red}Error: No such file or directory or invalid option${NC}"; exit 1
 elif [[ $(file -S -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0 ]]; then
 	echo -e "${red}Error: You haven't specified a valid deb package${NC}"; exit 1
 fi
 
-if [[ ! $(ls /var/cache/pkgfile/*.files 2> /dev/null) ]] || [[ ! $(ls /var/cache/debtap/*-packages-files 2> /dev/null) ]] || [[ ! -e /var/cache/debtap/base-packages ]] || [[ ! -e /var/cache/debtap/aur-packages ]] || [[ ! -e /var/cache/debtap/virtual-packages ]]; then
-	# This should fix it.  Patch by SnivySquid65!
+if [[ ! $(ls /var/cache/pkgfile | egrep '*.files?(.[[:digit:]]{3})' 2> /dev/null) ]] || [[ ! $(ls /var/cache/debtap/*-packages-files 2> /dev/null) ]] || [[ ! -e /var/cache/debtap/base-packages ]] || [[ ! -e /var/cache/debtap/aur-packages ]] || [[ ! -e /var/cache/debtap/virtual-packages ]]; then
 	if [[ $pseudo != set ]]; then
-		while true; do
-			read -p "Updates may be available that are not installed! Proceed anyway? (If you've already ran 'debtap -u' recently, you can ignore this and continue.) (y/n)  " yn
-			case $yn in
-				[yY] ) echo "Then let's continue!";
-					break;;
-				[nN] ) echo "Aborted!!";
-					exit;;
-				* ) echo "Invalid input.";;
-			esac
-		done
+		echo -e "${red}Error: You must run at least once \"debtap -u\" with root privileges (preferably recently), before running this script${NC}"; exit 1
 	else
-			echo "You made it past the update request bug! Yay!"
+		echo -e "${red}Error: You must enable a multilib repository, synchronize pacman database and then run at least once \"debtap -u\" with root privileges (preferably recently), before running this script${NC}"; exit 1
 	fi
 fi
 
@@ -177,8 +185,7 @@ working_directory="$(pwd)/$(basename "${@: -1}" | tr '[:upper:]' '[:lower:]' | s
 rm -rf "$working_directory" 2> /dev/null
 mkdir "$working_directory" 2> /dev/null
 if [[ $? != 0 ]]; then
-	echo -e "${red}Error: Cannot create working directory, permission denied. Exiting...${NC}"
-	exit 1
+	echo -e "${red}Error: Cannot create working directory, permission denied. Exiting...${NC}";	exit 1
 fi
 cd "$working_directory"
 
@@ -556,7 +563,7 @@ echo -e "\n${lightgreen}***${NC} ${bold}Creation of .PKGINFO file in progress. I
 packages-names-translator() {
 # First method of translating .deb packages names into Arch Linux packages names, more accurate, comparing contents of .deb packages with Arch Linux packages contents
 for debian_package_name in $(gawk '{print $1}' $(ls | grep initial-check-list)); do
-	for debian_package_file in $(grep "\/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
+	for debian_package_file in $(grep "/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
 		echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " $(ls | grep initial-check-list) | gawk '{print $2}')
 	done >> $debian_package_name-tempfile03
 done
@@ -614,7 +621,7 @@ done
 # Second method of translating remaining untranslated .deb packages names into Arch Linux packages names, same as first method, but searches in Ubuntu database for packages contents instead of Debian database
 if [[ -e untranslated-names-only ]]; then
     for ubuntu_package_name in $(sort -u untranslated-names-only); do
-		for ubuntu_package_file in $(grep "\/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
+		for ubuntu_package_file in $(grep "/$ubuntu_package_name$" /var/cache/debtap/ubuntu-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
 			echo $ubuntu_package_file $(grep "^$ubuntu_package_name$\|^$ubuntu_package_name " untranslated | gawk '{print $2}')
 		done >> $ubuntu_package_name-tempfile08
     done
@@ -690,7 +697,7 @@ if [[ -e new-untranslated-names-only ]]; then
 	    o=$(echo "$j" | rev | sed -e s'/\./ /g' -e s'/-/ /g' | gawk '{print $5}' | wc -c)
 	    p=$(echo "$j" | rev | sed s'/-/ /g' | gawk '{print $2}' | rev)
 	    pacman -Ssq $(echo "$j" | sed s'/^lib//' | rev | cut -c $(($k + $l + $m + $n + $o + 1))- | rev) | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' | sort -u > result2
-	    for q in $(eval echo {1..$(($k - 1))} {$(($k + 1))..$(($k + $l - 1))}); do 
+	    for q in $(eval echo {1..$(($k - 1))} {$(($k + 1))..$(($k + $l - 1))}); do
 		for r in $(eval echo {$(($k + $l + $m + 1))..$(($k + $l + $m + $n - 1))} {$(($k + $l + $m + $n + 1))..$(($k + $l + $m + $n + $o - 1))} $(($k + $l + $m + $n + $o + 1))); do
 		    grep -q "^$(echo $(echo "$j" | rev | cut -c $r- | rev)-$p-$(echo "$j" | rev | sed s'/-/ /' | gawk '{print $1}' | cut -c $q- | rev))$" result2 /var/cache/debtap/virtual-packages /var/cache/debtap/aur-packages && echo "$(echo "$j" | rev | cut -c $r- | rev)-$p-$(echo "$j" | rev | sed s'/-/ /' | gawk '{print $1}' | cut -c $q- | rev)" >> matches
 		    grep -q "^$(echo $(echo "$j" | sed s'/^lib//' | rev | cut -c $r- | rev)-$p-$(echo "$j" | rev | sed s'/-/ /' | gawk '{print $1}' | cut -c $q- | rev))$" result2 /var/cache/debtap/virtual-packages /var/cache/debtap/aur-packages && echo "$(echo "$j" | sed s'/^lib//' | rev | cut -c $r- | rev)-$p-$(echo "$j" | rev | sed s'/-/ /' | gawk '{print $1}' | cut -c $q- | rev)" >> matches
@@ -2192,7 +2199,7 @@ if [[ -e new-untranslated-names-only ]]; then
 	    n=$(echo "$j" | rev | sed -e s'/-/ /g' -e s'/\./ /g' | gawk '{print $3}' | wc -c)
 	    o=$(echo "$j" | rev | sed -e s'/\./ /g' -e s'/-/ /g' | gawk '{print $4}' | wc -c)
 	    pacman -Ssq $(echo "$j" | sed s'/^lib//' | rev | cut -c $(($k + $l + $n + $o + 1))- | rev) | sed s'/-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$//' | sort -u > result2
-	    for q in $(eval echo {1..$(($k - 1))} {$(($k + 1))..$(($k + $l - 1))}); do 
+	    for q in $(eval echo {1..$(($k - 1))} {$(($k + 1))..$(($k + $l - 1))}); do
 		for r in $(eval echo {$(($k + $l + 1))..$(($k + $l + $n - 1))} {$(($k + $l + $n + 1))..$(($k + $l + $n + $o - 1))} $(($k + $l + $n + $o + 1))); do
 		    grep -q "^$(echo $(echo "$j" | rev | cut -c $r- | rev)-$(echo "$j" | rev | sed s'/-/ /' | gawk '{print $1}' | cut -c $q- | rev))$" result2 /var/cache/debtap/virtual-packages /var/cache/debtap/aur-packages && echo "$(echo "$j" | rev | cut -c $r- | rev)-$(echo "$j" | rev | sed s'/-/ /' | gawk '{print $1}' | cut -c $q- | rev)" >> matches
 		    grep -q "^$(echo $(echo "$j" | sed s'/^lib//' | rev | cut -c $r- | rev)-$(echo "$j" | rev | sed s'/-/ /' | gawk '{print $1}' | cut -c $q- | rev))$" result2 /var/cache/debtap/virtual-packages /var/cache/debtap/aur-packages && echo "$(echo "$j" | sed s'/^lib//' | rev | cut -c $r- | rev)-$(echo "$j" | rev | sed s'/-/ /' | gawk '{print $1}' | cut -c $q- | rev)" >> matches
@@ -2639,7 +2646,7 @@ if [[ -e new-untranslated-names-only ]]; then
 		    grep "^$i$\|^$i " new-untranslated | sed s"/^$i/$(head -1 matches)-$t/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 		fi
 	    done
-	    if [[ $(echo "$i" | grep -q '\-svn$\|\-git$\|\-cvs$\|\-bzr$\|\-darcs$\|\-hg$'; echo $?) != 0 ]]; then
+	    if [[ $(echo "$i" | grep -q '\-svn$\|-git$\|-cvs$\|-bzr$\|-darcs$\|-hg$'; echo $?) != 0 ]]; then
 	        grep "^$i$\|^$i " new-untranslated | sed s"/^$i/$(head -1 matches)/g" | sed s'/=/= /g' | sed s'/>/> /g' | sed s'/</< /g' | sed s'/> =/>=/g' | sed s'/< =/<=/g' >> final-check-list
 	    fi
 	    sed -i "/^$i$\|^$i /d" new-untranslated
@@ -3107,7 +3114,7 @@ if [[ -e tempfile2 ]]; then
 	fi
 
 	sed -i s'/^[[:blank:]]\{1,\}$//g' tempfile2
-    
+
 	if [[ $pseudo != set ]]; then
 		if [[ $(grep -i ^Architecture: control \| grep -q i386; echo $?) == 0 ]]; then
 			sed -i -e s'/ \/bin\// \/usr\/bin\//g' -e s'/ \/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/games\// \/usr\/bin\//g' -e s'/ \/lib\// \/usr\/lib\//g' -e s'/ \/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/local\/sbin\// \/usr\/bin\//g' -e s'/ \/usr\/local\/games\// \/usr\/bin\//g' -e s'/ \/usr\/local\/lib32\// \/usr\/lib\//g' -e s'/ \/usr\/local\// \/usr\//g' tempfile2
@@ -3132,7 +3139,7 @@ if [[ -e tempfile2 ]]; then
 		sed -i -e s'/"\/bin\//"\/usr\/bin\//g' -e s'/"\/sbin\//"\/usr\/bin\//g' -e s'/"\/usr\/sbin\//"\/usr\/bin\//g' -e s'/"\/usr\/games\//"\/usr\/bin\//g' -e s'/"\/lib\//"\/usr\/lib32\//g' -e s'/"\/lib32\//"\/usr\/lib32\//g' -e s'/"\/usr\/lib\//"\/usr\/lib32\//g' -e s'/"\/usr\/local\/sbin\//"\/usr\/bin\//g' -e s'/"\/usr\/local\/games\//"\/usr\/bin\//g' -e s'/"\/usr\/local\/lib\//"\/usr\/lib32\//g' -e s'/"\/usr\/local\//"\/usr\//g' tempfile2
 		sed -i -e s"/'\/bin\//'\/usr\/bin\//g" -e s"/'\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/games\//'\/usr\/bin\//g" -e s"/'\/lib\//'\/usr\/lib32\//g" -e s"/'\/lib32\//'\/usr\/lib32\//g" -e s"/'\/usr\/lib\//'\/usr\/lib32\//g" -e s"/'\/usr\/local\/sbin\//'\/usr\/bin\//g" -e s"/'\/usr\/local\/games\//'\/usr\/bin\//g" -e s"/'\/usr\/local\/lib\//'\/usr\/lib32\//g" -e s"/'\/usr\/local\//'\/usr\//g" tempfile2
 	fi
-	
+
 	for i in {upgrade,install,remove,purge,configure}; do
 		sed -i -e s"/ \[\[ \"\$1\" = \"$i\" \]\] &&\| && \[\[ \"\$1\" = \"$i\" \]\]//g" -e s"/ \[ \"\$1\" = \"$i\" \] &&\| && \[ \"\$1\" = \"$i\" \]//g" -e s"/ \[\[ \"\${1}\" = \"$i\" \]\] &&\| && \[\[ \"\${1}\" = \"$i\" \]\]//g" -e s"/ \[ \"\${1}\" = \"$i\" \] &&\| && \[ \"\${1}\" = \"$i\" \]//g" -e s"/ \[\[ \"\$1\" = $i \]\] &&\| && \[\[ \"\$1\" = $i \]\]//g" -e s"/ \[ \"\$1\" = $i \] &&\| && \[ \"\$1\" = $i \]//g" -e s"/ \[\[ \"\${1}\" = $i \]\] &&\| && \[\[ \"\${1}\" = $i \]\]//g" -e s"/ \[ \"\${1}\" = $i \] &&\| && \[ \"\${1}\" = $i \]//g" tempfile2
 	done
@@ -3194,7 +3201,17 @@ fakeroot << EOF
 tar --force-local -pcf $(grep '^pkgname =' .PKGINFO | gawk '{print $3}')-$(grep '^pkgver =' .PKGINFO | gawk '{print $3}')-$(grep '^arch =' .PKGINFO | gawk '{print $3}').pkg.tar --exclude='pkgbuildinstallations*' * .PKGINFO .INSTALL .MTREE 2> /dev/null
 zstd -q -T0 --ultra -20 *.tar
 EOF
-mv *.zst "$(dirname "$package_with_full_path")"
+if [[ $output == set ]]; then
+	mv *.zst "$outputdirectory"
+	if [[ $? != 0 ]]; then
+		echo -e "${red}Error: Cannot move generated package to output directory, permission denied. Exiting...${NC}";	exit 1
+	fi
+else
+	mv *.zst "$(dirname "$package_with_full_path")"
+	if [[ $? != 0 ]]; then
+		echo -e "${red}Error: Cannot move generated package to the same directory as .deb package, permission denied. Exiting...${NC}";	exit 1
+	fi
+fi
 fi
 
 # Announcement of successful creation of package
@@ -3389,22 +3406,40 @@ echo -e "\n}" >> PKGBUILD
 
 # Moving PKGBUILD (and .INSTALL, if it exists) and announcing its creation
 pkgname="$(grep '^pkgname=' PKGBUILD | sed s'/^pkgname=//')"
-rm -rf "../$pkgname" 2> /dev/null
-mkdir "../$pkgname" 2> /dev/null
-if [[ $? != 0 ]]; then
-	echo -e "${red}Error: Cannot create PKGBUILD directory, permission denied. Removing leftover files and exiting...${NC}"
-	rm -rf "$working_directory"
-	rm -rf /tmp/debtap
-	exit 1
-fi
-mv PKGBUILD "../$pkgname"
-pkgbuild_with_full_path="$(readlink -f "../$pkgname/PKGBUILD")"
-pkgbuild_location="$(dirname "$pkgbuild_with_full_path")"
-if [[ -e .INSTALL ]]; then
-	mv .INSTALL "../$pkgname/$pkgname.install"
-	echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD and "$pkgname.install" are now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
+if [[ $output == set ]]; then
+	pkgbuild_location="$(dirname "$outputdirectory/$pkgname-PKGBUILD")"
+	rm -rf "$pkgbuilt_location" 2> /dev/null
+	mkdir "$pkgbuilt_location" 2> /dev/null
+	if [[ $? != 0 ]]; then
+		echo -e "${red}Error: Cannot create PKGBUILD directory to output directory, permission denied. Removing leftover files and exiting...${NC}"
+		rm -rf "$working_directory"
+		rm -rf /tmp/debtap
+		exit 1
+	fi
+	mv PKGBUILD "$pkgbuild_location"
+	if [[ -e .INSTALL ]]; then
+		mv .INSTALL "$pkgbuild_location/$pkgname.install"
+		echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD and "$pkgname.install" are now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
+	else
+		echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD is now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
+	fi
 else
-	echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD is now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
+	pkgbuild_location="$(dirname ""$(dirname "$package_with_full_path")"/$pkgname-PKGBUILD")"
+	rm -rf "$pkgbuilt_location" 2> /dev/null
+	mkdir "$pkgbuilt_location" 2> /dev/null
+	if [[ $? != 0 ]]; then
+		echo -e "${red}Error: Cannot create PKGBUILD directory to the same directory as .deb package, permission denied. Removing leftover files and exiting...${NC}"
+		rm -rf "$working_directory"
+		rm -rf /tmp/debtap
+		exit 1
+	fi
+	mv PKGBUILD "$pkgbuild_location"
+	if [[ -e .INSTALL ]]; then
+		mv .INSTALL "$pkgbuild_location/$pkgname.install"
+		echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD and "$pkgname.install" are now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
+	else
+		echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD is now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
+	fi
 fi
 
 # Removing leftover files
