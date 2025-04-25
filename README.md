@@ -32,6 +32,7 @@ A script for converting .deb packages into Arch Linux packages, focused on accur
 **Q: How do I use debtap?**
 
 **A:** The syntax is quite simple actually: `Syntax: debtap -o output_directory [other_options] package_filename`
+
 For example: `debtap world-of-goo-demo_1.0_i386.deb`
 
 Any recommendations or questions for debtap are welcomed!
@@ -47,5 +48,5 @@ Available options:
     -w  --wipeout     Wipeout versions from all dependencies, conflicts etc.
     -p  --pkgbuild    Additionally generate a PKGBUILD file
     -P  --Pkgbuild    Generate a PKGBUILD file only
-    -o  --output      Output directory for generated package and/or pkgbuild (optional)
+    -o  --output      Output directory for generated package and/or PKGBUILD (optional)
     -v  --version     Print version
