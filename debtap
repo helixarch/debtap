@@ -3441,8 +3441,8 @@ echo -e "\n}" >> PKGBUILD
 pkgname="$(grep '^pkgname=' PKGBUILD | sed s'/^pkgname=//')"
 if [[ $output == set ]]; then
 	pkgbuild_location="$(dirname "$outputdirectory/$pkgname-PKGBUILD")"
-	rm -rf "$pkgbuilt_location" 2> /dev/null
-	mkdir "$pkgbuilt_location" 2> /dev/null
+	rm -rf "$pkgbuild_location" 2> /dev/null
+	mkdir "$pkgbuild_location" 2> /dev/null
 	if [[ $? != 0 ]]; then
 		echo -e "${red}Error: Cannot create PKGBUILD directory to output directory, permission denied. Removing leftover files and exiting...${NC}"
 		rm -rf "$working_directory"
@@ -3458,8 +3458,8 @@ if [[ $output == set ]]; then
 	fi
 else
 	pkgbuild_location="$(dirname ""$(dirname "$package_with_full_path")"/$pkgname-PKGBUILD")"
-	rm -rf "$pkgbuilt_location" 2> /dev/null
-	mkdir "$pkgbuilt_location" 2> /dev/null
+	rm -rf "$pkgbuild_location" 2> /dev/null
+	mkdir "$pkgbuild_location" 2> /dev/null
 	if [[ $? != 0 ]]; then
 		echo -e "${red}Error: Cannot create PKGBUILD directory to the same directory as .deb package, permission denied. Removing leftover files and exiting...${NC}"
 		rm -rf "$working_directory"
