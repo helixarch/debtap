@@ -3440,39 +3440,26 @@ echo -e "\n}" >> PKGBUILD
 # Moving PKGBUILD (and .INSTALL, if it exists) and announcing its creation
 pkgname="$(grep '^pkgname=' PKGBUILD | sed s'/^pkgname=//')"
 if [[ $output == set ]]; then
-	pkgbuild_location="$(dirname "$outputdirectory/$pkgname-PKGBUILD")"
-	rm -rf "$pkgbuild_location" 2> /dev/null
-	mkdir "$pkgbuild_location" 2> /dev/null
-	if [[ $? != 0 ]]; then
-		echo -e "${red}Error: Cannot create PKGBUILD directory to output directory, permission denied. Removing leftover files and exiting...${NC}"
-		rm -rf "$working_directory"
-		rm -rf /tmp/debtap
-		exit 1
-	fi
-	mv PKGBUILD "$pkgbuild_location"
-	if [[ -e .INSTALL ]]; then
-		mv .INSTALL "$pkgbuild_location/$pkgname.install"
-		echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD and "$pkgname.install" are now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
-	else
-		echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD is now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
-	fi
+	pkgbuild_location="$outputdirectory"
 else
-	pkgbuild_location="$(dirname ""$(dirname "$package_with_full_path")"/$pkgname-PKGBUILD")"
-	rm -rf "$pkgbuild_location" 2> /dev/null
-	mkdir "$pkgbuild_location" 2> /dev/null
-	if [[ $? != 0 ]]; then
-		echo -e "${red}Error: Cannot create PKGBUILD directory to the same directory as .deb package, permission denied. Removing leftover files and exiting...${NC}"
-		rm -rf "$working_directory"
-		rm -rf /tmp/debtap
-		exit 1
-	fi
-	mv PKGBUILD "$pkgbuild_location"
-	if [[ -e .INSTALL ]]; then
-		mv .INSTALL "$pkgbuild_location/$pkgname.install"
-		echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD and "$pkgname.install" are now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
-	else
-		echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD is now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
-	fi
+	pkgbuild_location= "$(dirname "$package_with_full_path")"
+fi
+pkgbuild_location="$pkgbuild_location/$pkgname-PKGBUILD"
+rm -rf "$pkgbuild_location" 2> /dev/null
+mkdir "$pkgbuild_location" 2> /dev/null
+echo "pkgbuild_location = $pkgbuild_location"
+if [[ $? != 0 ]]; then
+	echo -e "${red}Error: Cannot create PKGBUILD directory to the same directory as .deb package, permission denied. Removing leftover files and exiting...${NC}"
+	rm -rf "$working_directory"
+	rm -rf /tmp/debtap
+	exit 1
+fi
+mv PKGBUILD "$pkgbuild_location/PKGBUILD"
+if [[ -e .INSTALL ]]; then
+	mv .INSTALL "$pkgbuild_location/$pkgname.install"
+	echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD and "$pkgname.install" are now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
+else
+	echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD is now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
 fi
 
 # Removing leftover files
