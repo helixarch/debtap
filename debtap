@@ -148,7 +148,7 @@ elif [[ $(file -S -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0
 	echo -e "${red}Error: You haven't specified a valid deb package${NC}"; exit 1
 fi
 
-if [[ ! $(ls /var/cache/pkgfile | egrep '*.files?(.[[:digit:]]{3})' 2> /dev/null) ]] || [[ ! $(ls /var/cache/debtap/*-packages-files 2> /dev/null) ]] || [[ ! -e /var/cache/debtap/base-packages ]] || [[ ! -e /var/cache/debtap/aur-packages ]] || [[ ! -e /var/cache/debtap/virtual-packages ]]; then
+if [[ ! $(ls /var/cache/pkgfile 2> /dev/null | egrep '*.files?(.[[:digit:]]{3})') ]] || [[ ! $(ls /var/cache/debtap/*-packages-files 2> /dev/null) ]] || [[ ! -e /var/cache/debtap/base-packages ]] || [[ ! -e /var/cache/debtap/aur-packages ]] || [[ ! -e /var/cache/debtap/virtual-packages ]]; then
 	if [[ $pseudo != set ]]; then
 		echo -e "${red}Error: You must run at least once \"debtap -u\" with root privileges (preferably recently), before running this script${NC}"; exit 1
 	else
