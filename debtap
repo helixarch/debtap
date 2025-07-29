@@ -15,7 +15,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Version=3.6.0
+Version=3.6.1
 
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
@@ -131,7 +131,7 @@ elif [[ $update == set ]]; then
                         echo -e "${red}Downloading failed. Exiting...${NC}"; exit 1
                     else
                         echo -e "${lightgreen}==>${NC} ${bold}Generating extended base group packages list...${normal}"
-                        rm -rf /var/cache/debtap/base-packages
+                        rm -rf /var/cache/debtap/extended-base-packages-list
                         for i in $(pacman -Qi base 2> /dev/null | grep ^Depends | cut -d: -f2); do echo "$i" >> /var/cache/debtap/base-packages; done
                         for i in $(cat /var/cache/debtap/base-packages); do pactree -lu "$i" >> /var/cache/debtap/extended-base-packages-list-temp; done
                         sort -u /var/cache/debtap/extended-base-packages-list-temp > /var/cache/debtap/extended-base-packages-list; echo >> /var/cache/debtap/extended-base-packages-list
@@ -2784,7 +2784,7 @@ packages-names-translator() {
 		rm -rf result
 	fi
 
-	# Special rules for non optional dependencies
+	# Special rules for mandatory dependencies
 	if [[ -e dependencies-initial-check-list ]]; then
 		grep -q gtk tempfile17 && echo hicolor-icon-theme >> tempfile17
 		grep -q ^Python-Version: control && echo python$(grep ^Python-Version: control | gawk '{print $2}' | sed s'/\.//g') >> tempfile17
@@ -2950,7 +2950,7 @@ if [[ -e conffiles ]]; then
 	rm -rf tempfile
 fi
 
-# Generating non optional dependencies fields
+# Generating mandatory dependencies fields
 # Creating test package for check with namcap
 tar --force-local -pcf test.pkg.tar --exclude='pkgbuildinstallations*' --exclude={control,preinst,postinst,prerm,posrtrm,conffiles,*-untranslated-names-only} * .PKGINFO 2> /dev/null
 namcap -r sodepends -m test.pkg.tar | grep 'dependency-detected-not-included\|library-no-package-associated' | gawk '{print $3,$4}' > namcap-checks
