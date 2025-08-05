@@ -15,7 +15,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Version=3.6.3
+Version=3.6.2
 
 # Defining colors and bold letters
 lightgreen='\e[1;32m'
@@ -67,7 +67,7 @@ if [[ $output == set ]]; then
 			if [[ "${optionsarray[$i+1]}" == "" ]]; then
 				echo -e "${red}Error: You haven't specified an output directory${NC}"; exit 1;
 			elif [ -d "${optionsarray[$i+1]}" ]; then
-				outputdirectory="$(realpath "${optionsarray[$i+1]}")"
+				outputdirectory="${optionsarray[$i+1]}"
 			else
 				echo -e "${red}Error: No output directory or invalid output directory${NC}"; exit 1;
 			fi
@@ -3465,11 +3465,11 @@ if [[ -e pkgbuildinstallations1 ]] || [[ -e pkgbuildinstallations2 ]] || [[ -e p
 	fi
 fi
 echo -e "\n}" >> PKGBUILD
-echo "$output_directory"
+
 # Moving PKGBUILD (and .INSTALL, if it exists) and announcing its creation
 pkgname="$(grep '^pkgname=' PKGBUILD | sed s'/^pkgname=//')"
 if [[ $output == set ]]; then
-	pkgbuild_location="$outputdirectory/$pkgname-PKGBUILD"
+	pkgbuild_location="$(dirname "$outputdirectory/$pkgname-PKGBUILD")"
 	rm -rf "$pkgbuild_location" 2> /dev/null
 	mkdir "$pkgbuild_location" 2> /dev/null
 	if [[ $? != 0 ]]; then
@@ -3486,7 +3486,7 @@ if [[ $output == set ]]; then
 		echo -e "${lightgreen}==>${NC} ${bold}PKGBUILD is now located in${normal} ${lightblue}\"$pkgbuild_location\"${NC} ${bold}and ready to be edited${normal}"
 	fi
 else
-	pkgbuild_location=""$(dirname "$package_with_full_path")"/$pkgname-PKGBUILD"
+	pkgbuild_location="$(dirname ""$(dirname "$package_with_full_path")"/$pkgname-PKGBUILD")"
 	rm -rf "$pkgbuild_location" 2> /dev/null
 	mkdir "$pkgbuild_location" 2> /dev/null
 	if [[ $? != 0 ]]; then
