@@ -184,9 +184,8 @@ tar_extract_cmd() {
 
 # Defining package with full path & defining and creating working directory
 package_with_full_path="$(readlink -f "${@: -1}")"
-working_directory="$(pwd)/$(basename "${@: -1}" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb$//')-working-directory"
-rm -rf "$working_directory" 2> /dev/null
-mkdir "$working_directory" 2> /dev/null
+working_directory=$(mktemp -d -p "$(pwd)" "$(basename "${@: -1}" | tr '[:upper:]' '[:lower:]' | sed s'/\.deb$//')".XXXXXXXXXX)
+trap 'rm -rf "$working_directory"' EXIT
 if [[ $? != 0 ]]; then
 	echo -e "${red}Error: Cannot create working directory, permission denied. Exiting...${NC}";	exit 1
 fi
@@ -197,14 +196,12 @@ echo -e "${lightgreen}==>${NC} ${bold}Extracting package data...${normal}"
 control_tar_check=$(ar t "$package_with_full_path" | grep -m 1 "control\.tar")
 control_extract=$(tar_extract_cmd "$control_tar_check")
 if [ $? != 0 ]; then
-    rm -rf "$working_directory"
     exit 1
 fi
 ar p "$package_with_full_path" "$control_tar_check" | $control_extract
 
 if [[ $pseudo == set ]] && [[ $(grep ^Architecture: control | grep -q i386; echo $?) != 0 ]]; then
     echo -e "${red}Error: Invalid package architecture. Removing extracted package data and exiting...${NC}"
-    rm -rf "$working_directory"
     exit 1
 fi
 
@@ -212,7 +209,6 @@ rm -rf $(ls * | grep -v 'control\|preinst\|postinst\|prerm\|postrm\|conffiles')
 data_tar_check=$(ar t "$package_with_full_path" | grep -m 1 "data\.tar")
 data_extract=$(tar_extract_cmd "$data_tar_check")
 if [ $? != 0 ]; then
-    rm -rf "$working_directory"
     exit 1
 fi
 ar p "$package_with_full_path" "$data_tar_check" | $data_extract
@@ -3009,59 +3005,59 @@ if [[ $(grep -q '^Recommends:\|^Suggests:' control; echo $?) == 0 ]]; then
 fi
 touch optional-dependencies-untranslated-names-only-1
 
-# Moving report files to /tmp/debtap
-rm -rf /tmp/debtap 2> /dev/null
-mkdir /tmp/debtap 2> /dev/null
+# Moving report files to debtap temporary directory
+debtap_tmp=$(mktemp -d debtap.XXXXXXXXXX)
+trap 'rm -rf "$working_directory" "$debtap_tmp"' EXIT
 if [[ $? != 0 ]]; then
-	echo -e "${red}Error: Cannot create /tmp/debtap, permission denied${NC}"
+	echo -e "${red}Error: Cannot create a temporary directory, permission denied${NC}"
 fi
-mv *untranslated* /tmp/debtap 2> /dev/null
-mv *missing-files /tmp/debtap 2> /dev/null
+mv *untranslated* "$debtap_tmp" 2> /dev/null
+mv *missing-files "$debtap_tmp" 2> /dev/null
 
 # Report of (warning messages for) untranslated packages names and packages with missing files (if any exist)
-if [[ $(cat /tmp/debtap/dependencies-untranslated-names-only) != "" ]]; then
+if [[ $(cat "$debtap_tmp/dependencies-untranslated-names-only") != "" ]]; then
     echo -e "\n${lightred}Warning: These dependencies (depend =   fields) could not be translated into Arch Linux packages names:${NC}"
-    echo $($(cat /tmp/debtap/dependencies-untranslated-names-only)) | sed s'/ /, /g'
+    echo $($(cat "$debtap_tmp/dependencies-untranslated-names-only")) | sed s'/ /, /g'
 fi
-if [[ -e /tmp/debtap/dependencies-missing-files ]]; then
-    if [[ $(cat /tmp/debtap/dependencies-untranslated-names-only) != "" ]]; then
+if [[ -e "$debtap_tmp/dependencies-missing-files" ]]; then
+    if [[ $(cat "$debtap_tmp/dependencies-untranslated-names-only") != "" ]]; then
 	echo -e "${lightred}Warning: These packages names could not be included as dependencies, because debtap has translated them into the same name with the package for conversion. This happens sometimes when you convert packages that already exist in your repositories (which is a bad idea in general). The following packages contain files that are already included in the package from your repositories (without these files your converted package may be dysfunctional):${NC}"
     else
 	echo -e "\n${lightred}Warning: These packages names could not be included as dependencies, because debtap has translated them into the same name with the package for conversion. This happens sometimes when you convert packages that already exist in your repositories (which is a bad idea in general). The following packages contain files that are already included in the package from your repositories (without these files your converted package may be dysfunctional):${NC}"
     fi
-    echo $(cat /tmp/debtap/dependencies-missing-files) | sed s'/ /, /g'
+    echo $(cat "$debtap_tmp/dependencies-missing-files") | sed s'/ /, /g'
 fi
-if [[ $(cat /tmp/debtap/optional-dependencies-untranslated-names-only-1) != "" ]]; then
-    if [[ $(cat /tmp/debtap/dependencies-untranslated-names-only) != "" ]] || [[ -e /tmp/debtap/dependencies-missing-files ]]; then
+if [[ $(cat "$debtap_tmp/optional-dependencies-untranslated-names-only-1") != "" ]]; then
+    if [[ $(cat "$debtap_tmp/dependencies-untranslated-names-only") != "" ]] || [[ -e "$debtap_tmp/dependencies-missing-files" ]]; then
 	echo -e "${lightred}Warning: These optional dependencies (optdepend =   fields) could not be translated into Arch Linux packages names:${NC}"
     else
 	echo -e "\n${lightred}Warning: These optional dependencies (optdepend =   fields) could not be translated into Arch Linux packages names:${NC}"
     fi
-    echo $($(cat /tmp/debtap/optional-dependencies-untranslated-names-only-1)) | sed s'/ /, /g'
+    echo $($(cat "$debtap_tmp/optional-dependencies-untranslated-names-only-1")) | sed s'/ /, /g'
 fi
-if [[ $(cat /tmp/debtap/replacements-untranslated-names-only) != "" ]]; then
-    if [[ $(cat /tmp/debtap/dependencies-untranslated-names-only) != "" ]] || [[ -e /tmp/debtap/dependencies-missing-files ]] || [[ $(cat /tmp/debtap/optional-dependencies-untranslated-names-only-1) != "" ]]; then
+if [[ $(cat "$debtap_tmp/replacements-untranslated-names-only") != "" ]]; then
+    if [[ $(cat "$debtap_tmp/dependencies-untranslated-names-only") != "" ]] || [[ -e "$debtap_tmp/dependencies-missing-files" ]] || [[ $(cat "$debtap_tmp/optional-dependencies-untranslated-names-only-1") != "" ]]; then
 	echo -e "${lightred}Warning: These replacements (replaces =   fields) could not be translated into Arch Linux packages names:${NC}"
     else
 	echo -e "\n${lightred}Warning: These replacements (replaces =   fields) could not be translated into Arch Linux packages names:${NC}"
     fi
-    echo $($(cat /tmp/debtap/replacements-untranslated-names-only)) | sed s'/ /, /g'
+    echo $($(cat "$debtap_tmp/replacements-untranslated-names-only")) | sed s'/ /, /g'
 fi
-if [[ $(cat /tmp/debtap/conflicts-untranslated-names-only) != "" ]]; then
-    if [[ $(cat /tmp/debtap/dependencies-untranslated-names-only) != "" ]] || [[ -e /tmp/debtap/dependencies-missing-files ]] || [[ $(cat /tmp/debtap/optional-dependencies-untranslated-names-only-1) != "" ]] || [[ $(cat /tmp/debtap/replacements-untranslated-names-only) != "" ]]; then
+if [[ $(cat "$debtap_tmp/conflicts-untranslated-names-only") != "" ]]; then
+    if [[ $(cat "$debtap_tmp/dependencies-untranslated-names-only") != "" ]] || [[ -e "$debtap_tmp/dependencies-missing-files" ]] || [[ $(cat "$debtap_tmp/optional-dependencies-untranslated-names-only-1") != "" ]] || [[ $(cat "$debtap_tmp/replacements-untranslated-names-only") != "" ]]; then
 	echo -e "${lightred}Warning: These conflicts (conflict =   fields) could not be translated into Arch Linux packages names:${NC}"
     else
 	echo -e "\n${lightred}Warning: These conflicts (conflict =   fields) could not be translated into Arch Linux packages names:${NC}"
     fi
-    echo $($(cat /tmp/debtap/conflicts-untranslated-names-only)) | sed s'/ /, /g'
+    echo $($(cat "$debtap_tmp/conflicts-untranslated-names-only")) | sed s'/ /, /g'
 fi
-if [[ $(cat /tmp/debtap/provisions-untranslated-names-only) != "" ]]; then
-    if [[ $(cat /tmp/debtap/dependencies-untranslated-names-only) != "" ]] || [[ -e /tmp/debtap/dependencies-missing-files ]] || [[ $(cat /tmp/debtap/optional-dependencies-untranslated-names-only-1) != "" ]] || [[ $(cat /tmp/debtap/replacements-untranslated-names-only) != "" ]] || [[ $(cat /tmp/debtap/conflicts-untranslated-names-only) != "" ]]; then
+if [[ $(cat "$debtap_tmp/provisions-untranslated-names-only") != "" ]]; then
+    if [[ $(cat "$debtap_tmp/dependencies-untranslated-names-only") != "" ]] || [[ -e "$debtap_tmp/dependencies-missing-files" ]] || [[ $(cat "$debtap_tmp/optional-dependencies-untranslated-names-only-1") != "" ]] || [[ $(cat "$debtap_tmp/replacements-untranslated-names-only") != "" ]] || [[ $(cat "$debtap_tmp/conflicts-untranslated-names-only") != "" ]]; then
 	echo -e "${lightred}Warning: These provisions (provides =   fields) could not be translated into Arch Linux packages names:${NC}"
     else
 	echo -e "\n${lightred}Warning: These provisions (provides =   fields) could not be translated into Arch Linux packages names:${NC}"
     fi
-    echo $($(cat /tmp/debtap/provisions-untranslated-names-only)) | sed s'/ /, /g'
+    echo $($(cat "$debtap_tmp/provisions-untranslated-names-only")) | sed s'/ /, /g'
 fi
 
 # Generating .INSTALL file (if necessary)
@@ -3284,8 +3280,6 @@ fi
 if [[ $pkgbuild != set ]] && [[ $Pkgbuild != set ]]; then
 	# Removing leftover files
 	echo -e "${lightgreen}==>${NC} ${bold}Removing leftover files...${normal}"
-	rm -rf "$working_directory"
-	rm -rf /tmp/debtap
 	exit 0
 fi
 
@@ -3474,8 +3468,6 @@ if [[ $output == set ]]; then
 	mkdir "$pkgbuild_location" 2> /dev/null
 	if [[ $? != 0 ]]; then
 		echo -e "${red}Error: Cannot create PKGBUILD directory to output directory, permission denied. Removing leftover files and exiting...${NC}"
-		rm -rf "$working_directory"
-		rm -rf /tmp/debtap
 		exit 1
 	fi
 	mv PKGBUILD "$pkgbuild_location"
@@ -3491,8 +3483,6 @@ else
 	mkdir "$pkgbuild_location" 2> /dev/null
 	if [[ $? != 0 ]]; then
 		echo -e "${red}Error: Cannot create PKGBUILD directory to the same directory as .deb package, permission denied. Removing leftover files and exiting...${NC}"
-		rm -rf "$working_directory"
-		rm -rf /tmp/debtap
 		exit 1
 	fi
 	mv PKGBUILD "$pkgbuild_location"
@@ -3506,6 +3496,4 @@ fi
 
 # Removing leftover files
 echo -e "${lightgreen}==>${NC} ${bold}Removing leftover files...${normal}"
-rm -rf "$working_directory"
-rm -rf /tmp/debtap
 exit 0
