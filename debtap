@@ -3259,7 +3259,7 @@ bsdtar -czf .MTREE --format=mtree --options='!all,use-set,type,uid,gid,mode,time
 # Creating final package in a fakeroot environment
 if [[ $Pkgbuild != set ]]; then
 echo -e "\n${lightgreen}==>${NC} ${bold}Creating final package...${normal}"
-fakeroot << EOF
+fakeroot /usr/bin/bash << EOF
 tar --force-local -pcf $(grep '^pkgname =' .PKGINFO | gawk '{print $3}')-$(grep '^pkgver =' .PKGINFO | gawk '{print $3}')-$(grep '^arch =' .PKGINFO | gawk '{print $3}').pkg.tar --exclude='pkgbuildinstallations*' * .PKGINFO .INSTALL .MTREE 2> /dev/null
 zstd -q -T0 --ultra -15 *.tar
 EOF
