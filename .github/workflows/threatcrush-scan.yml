@@ -1,0 +1,116 @@
+# ThreatCrush security scan.
+#
+# Runs on every pull request and on pushes to the default branch, and uploads
+# SARIF so findings appear inline on the diff and in the Security tab.
+#
+# `pull_request`, deliberately, not `pull_request_target`: this checks out the
+# contributor's code, so it must not run with this repository's secrets or
+# write access. The token below is read-only and forks get no secrets at all,
+# which is what makes it safe to run a scanner over an untrusted patch.
+name: ThreatCrush
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: threatcrush-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned rather than `@latest`. A scanner runs on every contributor's patch,
+  # so an unpinned version is an unreviewed dependency taking whatever the
+  # registry serves that morning. Bump deliberately.
+  THREATCRUSH_VERSION: '0.6.0'
+
+jobs:
+  scan:
+    name: Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The scanner does not need to push, and a checkout that cannot
+          # authenticate cannot be talked into it.
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Scan
+        id: scan
+        run: |
+          # `set +e` on purpose. GitHub runs this with `bash -e`, which aborts
+          # the step the moment a command fails — so the first npx failure took
+          # the job down before any of the checks below could say *why*, and the
+          # log showed a bare npm error with no context. The exit codes are
+          # captured and reported instead.
+          set +e
+          set -uo pipefail
+
+          npx --yes "@profullstack/threatcrush@${THREATCRUSH_VERSION}" scan . \
+            --format sarif --output threatcrush.sarif
+          sarif_code=$?
+
+          npx --yes "@profullstack/threatcrush@${THREATCRUSH_VERSION}" scan . \
+            --format json --output threatcrush.json
+          json_code=$?
+
+          # A missing or unpublished version fails here rather than three
+          # confusing steps later.
+          if [ ! -f threatcrush.json ] && [ ! -f threatcrush.sarif ]; then
+            echo "::error::ThreatCrush ${THREATCRUSH_VERSION} did not run (exit ${sarif_code}/${json_code}). Is that version published?"
+            exit 1
+          fi
+
+          # Fail closed. An empty SARIF means the scan did not produce a
+          # result, and reporting that as "no findings" is the one outcome a
+          # security check must never have — a green tick on an unscanned diff.
+          if [ ! -s threatcrush.sarif ]; then
+            echo "::error::ThreatCrush produced no SARIF (exit ${sarif_code}) — this diff was NOT scanned"
+            exit 1
+          fi
+
+          files=$(node -e "process.stdout.write(String(require('./threatcrush.json').filesScanned ?? 0))")
+          findings=$(node -e "process.stdout.write(String((require('./threatcrush.json').findings ?? []).length))")
+
+          # This repository is one bash script in a file with no extension.
+          # A scanner that reads it by filename alone scans nothing and still
+          # exits 0, so assert that something was actually read. If this fires,
+          # the scanner stopped recognising the file — not "the code is clean".
+          if [ "${files}" -eq 0 ]; then
+            echo "::error::ThreatCrush read 0 files — nothing was scanned (exit ${sarif_code}/${json_code})"
+            exit 1
+          fi
+
+          echo "files=${files}" >> "$GITHUB_OUTPUT"
+          echo "findings=${findings}" >> "$GITHUB_OUTPUT"
+          echo "Scanned ${files} file(s), ${findings} finding(s)"
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        # Upload even when an earlier step failed, so a scan that found
+        # something still reports what it found.
+        if: always() && hashFiles('threatcrush.sarif') != ''
+        with:
+          sarif_file: threatcrush.sarif
+          category: threatcrush
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### ThreatCrush"
+            echo
+            echo "- version: \`${THREATCRUSH_VERSION}\`"
+            echo "- files scanned: ${{ steps.scan.outputs.files || '0' }}"
+            echo "- findings: ${{ steps.scan.outputs.findings || 'n/a' }}"
+            echo
+            echo "Findings are annotated on the diff and listed under **Security → Code scanning**."
+          } >> "$GITHUB_STEP_SUMMARY"
