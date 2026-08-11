@@ -26,7 +26,7 @@ env:
   # Pinned rather than `@latest`. A scanner runs on every contributor's patch,
   # so an unpinned version is an unreviewed dependency taking whatever the
   # registry serves that morning. Bump deliberately.
-  THREATCRUSH_VERSION: '0.7.0'
+  THREATCRUSH_VERSION: '0.9.0'
 
 jobs:
   scan:
