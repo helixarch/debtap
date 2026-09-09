@@ -19,7 +19,7 @@ A script for converting .deb packages into Arch Linux packages, focused on accur
 
 **Q: What are the minimum requirements to run this script?**
 
-**A:** You need to have installed these dependencies: `bash`, `binutils` (provides ar utility for extracting .deb package and readelf), `pkgfile` and `fakeroot`.You must run at least once (preferably recently) `debtap -u` to create/update pkgfile and debtap database (you do this with root privileges).
+**A:** You need to have installed these dependencies: `bash`, `binutils` (provides ar utility for extracting .deb package and readelf), `pkgfile`, `fakeroot`, `pacman-contrib`, and `namcap`. You must run at least once (preferably recently) `debtap -u` to create/update pkgfile and debtap database (you do this with root privileges).
 
 **Q: Debtap needs a lot of time to convert a package. So, why this is happening?**
 

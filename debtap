@@ -100,7 +100,10 @@ elif [[ $update == set ]]; then
             elif [[ "$(uname -m)" == "aarch64" ]]; then
                 _arch=arm64
             fi
-            ubuntu_latest_stable_version=$(curl -k -s https://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 3'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g')
+            ubuntu_latest_stable_version=$(curl -fsSL https://changelogs.ubuntu.com/meta-release | gawk -F ': ' '$1 == "Dist" { dist=$2 } $1 == "Supported" && $2 == "1" { latest=dist } END { print latest }')
+            if [[ -z "$ubuntu_latest_stable_version" ]]; then
+                echo -e "${red}Unable to determine the latest supported Ubuntu release. Exiting...${NC}"; exit 1
+            fi
             curl -k -C - -f http://ftp.debian.org/debian/dists/sid/main/Contents-$_arch.gz > /var/cache/debtap/debian-main-packages-files.gz
             gzip -df /var/cache/debtap/debian-main-packages-files.gz
             curl -k -C - -f http://ftp.debian.org/debian/dists/sid/non-free/Contents-$_arch.gz > /var/cache/debtap/debian-non-free-packages-files.gz
@@ -151,7 +154,7 @@ elif [[ $(file -S -b "${@: -1}" | grep -q "Debian binary package"; echo $?) != 0
 	echo -e "${red}Error: You haven't specified a valid deb package${NC}"; exit 1
 fi
 
-if [[ ! $(ls /var/cache/pkgfile | grep -E '*.files?(.[[:digit:]]{3})' 2> /dev/null) ]] || [[ ! $(ls /var/cache/debtap/*-packages-files 2> /dev/null) ]] || [[ ! -e /var/cache/debtap/extended-base-packages-list ]] || [[ ! -e /var/cache/debtap/aur-packages ]] || [[ ! -e /var/cache/debtap/virtual-packages ]]; then
+if [[ ! $(ls /var/cache/pkgfile 2> /dev/null | grep -E '\.files(\.[[:digit:]]{3})?$') ]] || [[ ! $(ls /var/cache/debtap/*-packages-files 2> /dev/null) ]] || [[ ! -e /var/cache/debtap/extended-base-packages-list ]] || [[ ! -e /var/cache/debtap/aur-packages ]] || [[ ! -e /var/cache/debtap/virtual-packages ]]; then
 	if [[ $pseudo != set ]]; then
 		echo -e "${red}Error: You must run at least once \"debtap -u\" with root privileges (preferably recently), before running this script${NC}"; exit 1
 	else
@@ -564,10 +567,13 @@ echo -e "\n${lightgreen}***${NC} ${bold}Creation of .PKGINFO file in progress. I
 
 # The packages names translator function
 packages-names-translator() {
+	# libstdc++N is Debian's versioned runtime package name; Arch uses libstdc++.
+	sed -i -E 's/^libstdc\+\+[0-9]+([[:space:]]|$)/libstdc++\1/' $(ls | grep initial-check-list)
+
 	# First method of translating .deb packages names into Arch Linux packages names, more accurate, comparing contents of .deb packages with Arch Linux packages contents
 	for debian_package_name in $(gawk '{print $1}' $(ls | grep initial-check-list)); do
 		for debian_package_file in $(grep "/$debian_package_name$" /var/cache/debtap/debian-main-packages-files /var/cache/debtap/debian-non-free-packages-files /var/cache/debtap/debian-contrib-packages-files | grep 'bin\|opt\|\.so' | gawk '{print $1}' | sed s'/\// /g' | gawk '{print $NF}'); do
-			echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " $(ls | grep initial-check-list) | gawk -F : '{print $2}')
+			echo $debian_package_file $(grep "^$debian_package_name$\|^$debian_package_name " $(ls | grep initial-check-list) | gawk '{print $2}')
 		done >> $debian_package_name-tempfile03
 	done
 
@@ -2875,7 +2881,7 @@ if [[ $(grep -q ^Replaces: control; echo $?) == 0 ]]; then
 			echo $word >> tempfile01
 		done
     done
-    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
+    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sed -E 's/([<>=]+)[0-9]+:/\1/g' | sort > tempfile02
     grep -v '^xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > replacements-initial-check-list
 	if [[ $(cat replacements-initial-check-list | wc -l) == 0 ]]; then
 		echo >> replacements-initial-check-list
@@ -2897,7 +2903,7 @@ if [[ $(grep -q ^Conflicts: control; echo $?) == 0 ]]; then
 			echo $word >> tempfile01
 		done
     done
-    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
+    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sed -E 's/([<>=]+)[0-9]+:/\1/g' | sort > tempfile02
     grep -v '^xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > conflicts-initial-check-list
 	if [[ $(cat conflicts-initial-check-list | wc -l) == 0 ]]; then
 		echo >> conflicts-initial-check-list
@@ -2919,7 +2925,7 @@ if [[ $(grep -q ^Provides: control; echo $?) == 0 ]]; then
 			echo $word >> tempfile01
 		done
     done
-    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
+    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sed -E 's/([<>=]+)[0-9]+:/\1/g' | sort > tempfile02
     grep -v '^xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > provisions-initial-check-list
 	if [[ $(cat provisions-initial-check-list | wc -l) == 0 ]]; then
 		echo >> provisions-initial-check-list
@@ -2963,7 +2969,7 @@ if [[ $(grep -q '^Depends:\|^Pre-Depends:' control; echo $?) == 0 ]]; then
 			echo $word >> tempfile01
 		done
     done
-    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
+    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sed -E 's/([<>=]+)[0-9]+:/\1/g' | sort > tempfile02
     grep -v '^xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > dependencies-initial-check-list
 	if [[ $(cat dependencies-initial-check-list | wc -l) == 0 ]]; then
 		echo >> dependencies-initial-check-list
@@ -2985,7 +2991,7 @@ if [[ $(grep -q '^Recommends:\|^Suggests:' control; echo $?) == 0 ]]; then
 			echo $word >> tempfile01
 		done
     done
-    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sort > tempfile02
+    sed -e s'/(/ /g' -e s'/)//g' tempfile01 | sed -E 's/([<>=]+)[0-9]+:/\1/g' | sort > tempfile02
     grep -v '^xlibs$\|^xlibs \|^libgl1$\|^libgl1 \|^libglu1$\|^libglu1 \|^default-jre$\|^default-jre \|^openjdk-[0-9]+-[jdk|jre]\|^libstdc[0-9]+$\|^libstdc[0-9]+ \|^qt[0-9]+-default$\|^qt[0-9]+-default \|^python:any$\|^python:any \|^libpango\|^libcupsys2$\|^libcupsys2 \|^jackd[0-9]*$\|^jackd[0-9]* \|^fonts-freefont-ttf$\|^fonts-freefont-ttf \|^fonts-liberation$\|^fonts-liberation \|^ttf-mscorefonts-installer$\|^ttf-mscorefonts-installer \|^dpkg$\|^dpkg \|^apt$\|^apt \|^apt-get$\|^apt-get \|^aptitude$\|^aptitude \|^debconf' tempfile02 > optional-dependencies-initial-check-list
 	if [[ $(cat optional-dependencies-initial-check-list | wc -l) == 0 ]]; then
 		echo >> optional-dependencies-initial-check-list
@@ -3078,8 +3084,8 @@ if [[ -e preinst ]]; then
 		sed -i -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/.*install.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' preinst
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*install.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' preinst
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrms\|--slave\|remove_source\|update_manager\|lintian' preinst | while read -r line; do
-	printf '\t%s\n' "$line" >> tempfile1
+	grep -iv '^[[:blank:]]*#!\|^[[:blank:]]*set -e\|^[[:blank:]]*#.*automatically\|^[[:blank:]]*#.*added\|^[[:blank:]]*#.*generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrms\|--slave\|remove_source\|update_manager\|lintian' preinst | while read -r line; do
+	printf '%s\n' "$line" >> tempfile1
 	done
 fi
 echo "}" >> tempfile1
@@ -3096,13 +3102,13 @@ fi
 if [[ -e postinst ]]; then
 	sed -i -e '/how this script works/,/debian-policy/d' -e '/how this script works/,/version>/d' -e '/dh_installdeb/,/DEBHELPER/d' postinst
 	if [[ $(grep -c "case in \$1\|case in \${1}\|case in \"\$1\"\|case in \"\${1}\"\|case \$1 in\|case \${1} in\|case \"\$1\" in\|case \"\${1}\" in" postinst) == $(grep -c "case " postinst) ]]; then
-		sed -i -e '/case in \$1/,/configure/{/configure/!d}' -e '/case in \${1}/,/configure/{/,configure/!d}' -e '/case in "\$1"/,/configure/{/configure/!d}' -e '/case in "\${1}"/,/configure/{/,configure/!d}' -e '/case \$1 in/,/configure/{/configure/!d}' -e '/case \${1} in/,/configure/{/,configure/!d}' -e '/case in "\$1"/,/configure/{/configure/!d}' -e '/case "\${1}" in/,/configure/{/,configure/!d}' -e '/;;/,/esac/{/;;/!d}' postinst
+		sed -i -e '/case in \$1/,/configure/{/configure/!d}' -e '/case in \${1}/,/configure/{/,configure/!d}' -e '/case in "\$1"/,/configure/{/configure/!d}' -e '/case in "\${1}"/,/configure/{/,configure/!d}' -e '/case \$1 in/,/configure/{/configure/!d}' -e '/case \${1} in/,/configure/{/,configure/!d}' -e '/case in "\$1"/,/configure/{/configure/!d}' -e '/case "\$1" in/,/configure/{/configure/!d}' -e '/case "\${1}" in/,/configure/{/,configure/!d}' -e '/;;/,/esac/{/;;/!d}' postinst
 		sed -i -e '/[[:blank:]]\{0,\}lintian.*/,/}/d' -e '/[[:blank:]]\{0,\}if.*update-app-install.*/,/fi/d' -e '/[[:blank:]]\{0,\}if.*update-software-center.*/,/fi/d' -e '/[[:blank:]]\{0,\}if.*RET.*/,/fi/d' -e '/.*\*)[[:blank:]]\{0,\}/,/esac/d' postinst
 		sed -i -e '/.*configure.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' postinst
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*configure.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postinst
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|--slave\|remove_source\|update_manager\|lintian' postinst | while read -r line; do
-		printf '\t%s\n' "$line" >> tempfile1
+	grep -iv '^[[:blank:]]*#!\|^[[:blank:]]*set -e\|^[[:blank:]]*#.*automatically\|^[[:blank:]]*#.*added\|^[[:blank:]]*#.*generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrm\|--slave\|remove_source\|update_manager\|lintian' postinst | while read -r line; do
+		printf '%s\n' "$line" >> tempfile1
 	done
 fi
 if [[ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) == 0 ]]; then
@@ -3134,8 +3140,8 @@ if [[ -e prerm ]]; then
 		sed -i -e '/.*remove.*)[[:blank:]]\{0,\}$/d' -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' prerm
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' prerm
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrms\|--slave\|remove_source\|update_manager\|lintian' prerm | while read -r line; do
-		printf '\t%s\n' "$line" >> tempfile1
+	grep -iv '^[[:blank:]]*#!\|^[[:blank:]]*set -e\|^[[:blank:]]*#.*automatically\|^[[:blank:]]*#.*added\|^[[:blank:]]*#.*generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrms\|--slave\|remove_source\|update_manager\|lintian' prerm | while read -r line; do
+		printf '%s\n' "$line" >> tempfile1
 	done
 fi
 echo "}" >> tempfile1
@@ -3157,8 +3163,8 @@ if [[ -e postrm ]]; then
 		sed -i -e '/.*remove.*)[[:blank:]]\{0,\}$/d' -e '/.*purge.*)[[:blank:]]\{0,\}$/d' -e '/.*upgrade.*)[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/d' -e '/^[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/d' postrm
 		sed -i -e s'/.*\*)[[:blank:]]{0,\}\(.*\)/\1,/g' -e s'/.*remove.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*purge.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/.*upgrade.*)[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^[[:blank:]]\{0,\};;[[:blank:]]\{0,\}\(.*\)$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit 0[[:blank:]]\{0,\}$/\1/g' -e s'/^\(.*\)[[:blank:]]\{0,\}\(; \)\{0,1\}\( && \)\{0,1\}[[:blank:]]\{0,\}exit[[:blank:]]\{0,\}$/\1/g' postrm
 	fi
-	grep -iv '#!\|set -e\|automatically\|added\|generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrms\|--slave\|remove_source\|update_manager\|lintian' postrm | while read -r line; do
-		printf '\t%s\n' "$line" >> tempfile1
+	grep -iv '^[[:blank:]]*#!\|^[[:blank:]]*set -e\|^[[:blank:]]*#.*automatically\|^[[:blank:]]*#.*added\|^[[:blank:]]*#.*generated\|apt \|apt-get \|aptitude \|debian-policy\|debconf\|dh_installdeb\|debhelper\|preinst\|postinst\|prerm\|postrms\|--slave\|remove_source\|update_manager\|lintian' postrm | while read -r line; do
+		printf '%s\n' "$line" >> tempfile1
 	done
 fi
 if [[ $(grep '^depend' .PKGINFO | grep -q 'qt\|gtk'; echo $?) == 0 ]]; then
@@ -3259,7 +3265,7 @@ bsdtar -czf .MTREE --format=mtree --options='!all,use-set,type,uid,gid,mode,time
 # Creating final package in a fakeroot environment
 if [[ $Pkgbuild != set ]]; then
 echo -e "\n${lightgreen}==>${NC} ${bold}Creating final package...${normal}"
-fakeroot << EOF
+fakeroot /usr/bin/bash << EOF
 tar --force-local -pcf $(grep '^pkgname =' .PKGINFO | gawk '{print $3}')-$(grep '^pkgver =' .PKGINFO | gawk '{print $3}')-$(grep '^arch =' .PKGINFO | gawk '{print $3}').pkg.tar --exclude='pkgbuildinstallations*' * .PKGINFO .INSTALL .MTREE 2> /dev/null
 zstd -q -T0 --ultra -15 *.tar
 EOF
