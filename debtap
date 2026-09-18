@@ -100,7 +100,13 @@ elif [[ $update == set ]]; then
             elif [[ "$(uname -m)" == "aarch64" ]]; then
                 _arch=arm64
             fi
-            ubuntu_latest_stable_version=$(curl -k -s https://packages.ubuntu.com | grep option | gawk -F '=' '{print $2}' | gawk '{print $1}' | grep -v option | tac | sed -n 3'{p;q;}' | sed s'/\("\|-updated\|-backports\)//g')
+            # Query Ubuntu meta-release for the latest LTS to guarantee .gz availability
+            ubuntu_latest_stable_version=$(curl -sL https://changelogs.ubuntu.com/meta-release | gawk '/^Dist: /{dist=$2} /^Version: .*LTS/{latest=dist} END{print latest}')
+            # Safety fallback if network query fails
+            if [[ -z "$ubuntu_latest_stable_version" ]]; then
+                echo -e "${lightred}Warning: Failed to dynamically detect the latest Ubuntu release. Falling back to jammy...${NC}"
+                ubuntu_latest_stable_version="jammy"
+            fi
             curl -k -C - -f http://ftp.debian.org/debian/dists/sid/main/Contents-$_arch.gz > /var/cache/debtap/debian-main-packages-files.gz
             gzip -df /var/cache/debtap/debian-main-packages-files.gz
             curl -k -C - -f http://ftp.debian.org/debian/dists/sid/non-free/Contents-$_arch.gz > /var/cache/debtap/debian-non-free-packages-files.gz
