@@ -132,7 +132,20 @@ elif [[ $update == set ]]; then
                     else
                         echo -e "${lightgreen}==>${NC} ${bold}Generating extended base group packages list...${normal}"
                         rm -rf /var/cache/debtap/extended-base-packages-list
-                        for i in $(pacman -Qi base 2> /dev/null | grep ^Depends | cut -d: -f2); do echo "$i" >> /var/cache/debtap/base-packages; done
+                        : > /var/cache/debtap/base-packages
+LC_ALL=C pacman -Qi base 2>/dev/null | awk '
+/^Depends On[[:space:]]*:/ {
+    sub(/^[^:]*:[[:space:]]*/, "")
+    for (i=1; i<=NF; i++) print $i
+    in_deps=1
+    next
+}
+in_deps && /^[[:space:]]/ {
+    for (i=1; i<=NF; i++) print $i
+    next
+}
+in_deps { exit }
+' > /var/cache/debtap/base-packages
                         for i in $(cat /var/cache/debtap/base-packages); do pactree -lu "$i" >> /var/cache/debtap/extended-base-packages-list-temp; done
                         sort -u /var/cache/debtap/extended-base-packages-list-temp > /var/cache/debtap/extended-base-packages-list; echo >> /var/cache/debtap/extended-base-packages-list
                         rm -rf /var/cache/debtap/base-packages /var/cache/debtap/extended-base-packages-list-temp
